@@ -21,10 +21,6 @@ def fromxlsx(filename, sheetname, checksumfun=None):
     return XLSXView(filename, sheetname, checksumfun=checksumfun)
 
 
-def spike():
-    True
-    
-
 class XLSXView(object):
     
     def __init__(self, filename, sheetname, checksumfun=None):
