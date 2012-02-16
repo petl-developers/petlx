@@ -12,7 +12,10 @@ from petlx.util import UnsatisfiedDependency
 
 def fromxlsx(filename, sheetname, checksumfun=None):
     """
-    TODO doc me
+    Extract a table from a sheet in an Excel (.xlsx) file.
+    
+    Note that the package openpyxl is required. Instructions for installation 
+    can be found at https://bitbucket.org/ericgazoni/openpyxl/wiki/Home.
     
     N.B., the sheet name is case sensitive, so watch out for, e.g., 'Sheet1'.
     
