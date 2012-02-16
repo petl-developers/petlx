@@ -1,0 +1,7 @@
+0.2
+---
+
+- some sort of interval tree lookup and/or join using bx-python - intervallookup, intervallookupone, intervalrecordlookup, intervalrecordlookupone, intervaljoin
+- fromgff3, unpackgff3info
+- fromvcf41, meltvcfsampledata, unpackvcfinfo, ...
+
