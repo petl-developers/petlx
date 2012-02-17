@@ -10,15 +10,20 @@ import petl
 from petlx.util import UnsatisfiedDependency
 
 
+dep_message = """
+The package openpyxl is required. Instructions for installation can be found at 
+https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
+"""
+
 def fromxlsx(filename, sheetname, checksumfun=None):
     """
     Extract a table from a sheet in an Excel (.xlsx) file.
     
-    Note that the package openpyxl is required. Instructions for installation 
-    can be found at https://bitbucket.org/ericgazoni/openpyxl/wiki/Home.
-    
     N.B., the sheet name is case sensitive, so watch out for, e.g., 'Sheet1'.
-    
+
+    The package openpyxl is required. Instructions for installation can be found at 
+    https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try ``pip install openpyxl``.
+        
     """
     
     return XLSXView(filename, sheetname, checksumfun=checksumfun)
@@ -35,7 +40,7 @@ class XLSXView(object):
         try:
             import openpyxl
         except ImportError as e:
-            raise UnsatisfiedDependency(e, 'The package openpyxl is required. Instructions for installation can be found at https://bitbucket.org/ericgazoni/openpyxl/wiki/Home')
+            raise UnsatisfiedDependency(e, dep_message)
         else:
             wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
             ws = wb.get_sheet_by_name(name=self.sheetname)

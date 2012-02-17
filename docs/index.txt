@@ -23,10 +23,18 @@ should be able to do ``easy_install petlx`` or ``pip install
 petlx``. On Windows or Mac you can download manually, extract and run
 ``python setup.py install``.
 
-Extracting (reading) tables from Excel files
---------------------------------------------
+Extracting (reading) tables from Excel files (openpyxl)
+-------------------------------------------------------
 
 .. autofunction:: petlx.fromxlsx
+
+Intervals (bx-python)
+---------------------
+
+.. autofunction:: petlx.intervallookup
+.. autofunction:: petlx.intervallookupone
+.. autofunction:: petlx.intervalrecordlookup
+.. autofunction:: petlx.intervalrecordlookupone
 
 Indices and tables
 ------------------
