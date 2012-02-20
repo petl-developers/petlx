@@ -3,7 +3,10 @@
 
 - [done] intervallookup, intervallookupone, intervalrecordlookup, intervalrecordlookupone
 - intervaljoin
-- fromdta
+- facetedintervallookup, facetedintervallookupone, facetedintervalrecordlookup, facetedintervalrecordlookupone
+- facetedintervaljoin
+- fromdta via statsmodels
+- fromsav via activestate recipe
 - fromgff3, unpackgff3info
 - fromvcf41, meltvcfsampledata, unpackvcfinfo, ...
 
