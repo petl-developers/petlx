@@ -1,13 +1,12 @@
 """
-TODO doc me
+Tests for the petlx.intervals module.
 
 """
 
-from petl.testfun import iassertequal
+from petl.testutils import iassertequal, assertequal
 from petl.util import DuplicateKeyError
-from petl.testfun import assertequal
 
-from petlx import intervallookup, intervallookupone
+from petlx.interval import intervallookup, intervallookupone
 
 
 def test_intervallookup():

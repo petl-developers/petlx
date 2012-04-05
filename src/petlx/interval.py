@@ -13,6 +13,12 @@ The package bx.intervals is required. Instructions for installation can be found
 at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try pip install bx-python.
 """
 
+try:
+    import bx.intervals
+except ImportError as e:
+    raise UnsatisfiedDependency(e, dep_message)
+
+
 def intervallookup(table, startf, stopf, valuespec=None, proximity=0):
     """
     Construct an interval lookup for the given table. E.g.::
@@ -82,27 +88,21 @@ def intervallookup(table, startf, stopf, valuespec=None, proximity=0):
     
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-    
-        tree = bx.intervals.intersection.IntervalTree()
-        it = iter(table)
-        fields = it.next()
-        assert startf in fields, 'start field not recognised'
-        assert stopf in fields, 'stop field not recognised'
-        getstart = itemgetter(fields.index(startf))
-        getstop = itemgetter(fields.index(stopf))
-        if valuespec is None:
-            valuespec = fields # default valuespec is complete row
-        valueindices = asindices(fields, valuespec)
-        assert len(valueindices) > 0, 'invalid valuespec'
-        getvalue = itemgetter(*valueindices)
-        for row in it:
-            tree.add(getstart(row), getstop(row), getvalue(row))
-        return IntervalTreeWrapper(tree, proximity=proximity)
+    tree = bx.intervals.intersection.IntervalTree()
+    it = iter(table)
+    fields = it.next()
+    assert startf in fields, 'start field not recognised'
+    assert stopf in fields, 'stop field not recognised'
+    getstart = itemgetter(fields.index(startf))
+    getstop = itemgetter(fields.index(stopf))
+    if valuespec is None:
+        valuespec = fields # default valuespec is complete row
+    valueindices = asindices(fields, valuespec)
+    assert len(valueindices) > 0, 'invalid valuespec'
+    getvalue = itemgetter(*valueindices)
+    for row in it:
+        tree.add(getstart(row), getstop(row), getvalue(row))
+    return IntervalTreeWrapper(tree, proximity=proximity)
 
 
 class IntervalTreeWrapper(object):
@@ -140,27 +140,21 @@ def intervallookupone(table, startf, stopf, valuespec=None, proximity=0, strict=
     
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-    
-        tree = bx.intervals.intersection.IntervalTree()
-        it = iter(table)
-        fields = it.next()
-        assert startf in fields, 'start field not recognised'
-        assert stopf in fields, 'stop field not recognised'
-        getstart = itemgetter(fields.index(startf))
-        getstop = itemgetter(fields.index(stopf))
-        if valuespec is None:
-            valuespec = fields # default valuespec is complete row
-        valueindices = asindices(fields, valuespec)
-        assert len(valueindices) > 0, 'invalid valuespec'
-        getvalue = itemgetter(*valueindices)
-        for row in it:
-            tree.add(getstart(row), getstop(row), getvalue(row))
-        return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
+    tree = bx.intervals.intersection.IntervalTree()
+    it = iter(table)
+    fields = it.next()
+    assert startf in fields, 'start field not recognised'
+    assert stopf in fields, 'stop field not recognised'
+    getstart = itemgetter(fields.index(startf))
+    getstop = itemgetter(fields.index(stopf))
+    if valuespec is None:
+        valuespec = fields # default valuespec is complete row
+    valueindices = asindices(fields, valuespec)
+    assert len(valueindices) > 0, 'invalid valuespec'
+    getvalue = itemgetter(*valueindices)
+    for row in it:
+        tree.add(getstart(row), getstop(row), getvalue(row))
+    return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
 
 
 class IntervalTreeReturnOneWrapper(object):
@@ -226,17 +220,11 @@ def intervalrecordlookup(table, startf, stopf, proximity=0):
 
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-    
-        tree = bx.intervals.intersection.IntervalTree()
-        for rec in records(table):
-            if startf in rec and stopf in rec:
-                tree.add(rec[startf], rec[stopf], rec)
-        return IntervalTreeWrapper(tree, proximity=proximity)
+    tree = bx.intervals.intersection.IntervalTree()
+    for rec in records(table):
+        if startf in rec and stopf in rec:
+            tree.add(rec[startf], rec[stopf], rec)
+    return IntervalTreeWrapper(tree, proximity=proximity)
 
 
 def intervalrecordlookupone(table, startf, stopf, proximity=0, strict=True):
@@ -251,17 +239,11 @@ def intervalrecordlookupone(table, startf, stopf, proximity=0, strict=True):
 
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-    
-        tree = bx.intervals.intersection.IntervalTree()
-        for rec in records(table):
-            if startf in rec and stopf in rec:
-                tree.add(rec[startf], rec[stopf], rec)
-        return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
+    tree = bx.intervals.intersection.IntervalTree()
+    for rec in records(table):
+        if startf in rec and stopf in rec:
+            tree.add(rec[startf], rec[stopf], rec)
+    return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
 
 
             

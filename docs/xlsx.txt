@@ -1,0 +1,7 @@
+.. py:module:: petlx.xlsx
+
+Excel files (openpyxl)
+======================
+
+.. autofunction:: fromxlsx
+

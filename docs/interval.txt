@@ -1,0 +1,10 @@
+.. py:module:: petlx.interval
+
+Intervals (bx-python)
+=====================
+
+.. autofunction:: intervallookup
+.. autofunction:: intervallookupone
+.. autofunction:: intervalrecordlookup
+.. autofunction:: intervalrecordlookupone
+

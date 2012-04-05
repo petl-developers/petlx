@@ -14,6 +14,11 @@ dep_message = """
 The package openpyxl is required. Instructions for installation can be found at 
 https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
 """
+try:
+    import openpyxl
+except ImportError as e:
+    raise UnsatisfiedDependency(e, dep_message)
+
 
 def fromxlsx(filename, sheetname, checksumfun=None):
     """
@@ -37,14 +42,9 @@ class XLSXView(object):
         self.checksumfun = checksumfun
         
     def __iter__(self):
-        try:
-            import openpyxl
-        except ImportError as e:
-            raise UnsatisfiedDependency(e, dep_message)
-        else:
-            wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
-            ws = wb.get_sheet_by_name(name=self.sheetname)
-            return ([cell.internal_value for cell in row] for row in ws.iter_rows())
+        wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
+        ws = wb.get_sheet_by_name(name=self.sheetname)
+        return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
                 
     def cachetag(self):
         p = self.filename
