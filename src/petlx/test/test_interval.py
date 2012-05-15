@@ -7,7 +7,7 @@ from petl.testutils import iassertequal, assertequal
 from petl.util import DuplicateKeyError
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
-                        facetintervallookupone
+                        facetintervallookupone, intervaljoin, intervalleftjoin
 
 
 def test_intervallookup():
@@ -248,7 +248,7 @@ def test_facetintervallookup():
              ('apple', 3, 7, 'bar'),
              ('orange', 4, 9, 'baz'))
     
-    lkp = facetintervallookup(table, key='type', startfield='start', stopfield='stop')
+    lkp = facetintervallookup(table, key='type', start='start', stop='stop')
 
     actual = lkp['apple'][1:2]
     expect = [('apple', 1, 4, 'foo')]
@@ -302,7 +302,7 @@ def test_facetintervallookupone():
              ('apple', 3, 7, 'bar'),
              ('orange', 4, 9, 'baz'))
     
-    lkp = facetintervallookupone(table, key='type', startfield='start', stopfield='stop', valuespec='value')
+    lkp = facetintervallookupone(table, key='type', start='start', stop='stop', valuespec='value')
     
     actual = lkp['apple'][1:2]
     expect = 'foo'
@@ -383,4 +383,216 @@ def test_facetintervallookupone():
     assertequal(expect, actual)
     
     
+def test_intervaljoin():
     
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervaljoin(left, right, 
+                          lstart='begin', lstop='end',
+                          rstart='start', rstop='stop')
+    expect = (('begin', 'end', 'quux', 'start', 'stop', 'value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    iassertequal(expect, actual)
+    iassertequal(expect, actual)
+    
+    
+def test_intervaljoin_proximity():
+    
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervaljoin(left, right, 
+                          lstart='begin', lstop='end',
+                          rstart='start', rstop='stop',
+                          proximity=1)
+    expect = (('begin', 'end', 'quux', 'start', 'stop', 'value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 4, 'b', 4, 9, 'baz'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (9, 14, 'd', 4, 9, 'baz'),
+              (9, 140, 'e', 4, 9, 'baz'),
+              (1, 1, 'f', 1, 4, 'foo'),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (4, 4, 'h', 4, 9, 'baz'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    iassertequal(expect, actual)
+    iassertequal(expect, actual)
+    
+    
+def test_intervalleftjoin():
+    
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervalleftjoin(left, right, 
+                              lstart='begin', lstop='end',
+                              rstart='start', rstop='stop')
+    expect = (('begin', 'end', 'quux', 'start', 'stop', 'value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (9, 14, 'd', None, None, None),
+              (9, 140, 'e', None, None, None),
+              (1, 1, 'f', None, None, None),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    iassertequal(expect, actual)
+    iassertequal(expect, actual)
+    
+
+def test_intervaljoin_faceted():    
+
+    left = (('fruit', 'begin', 'end'),
+            ('apple', 1, 2),
+            ('apple', 2, 4),
+            ('apple', 2, 5),
+            ('orange', 2, 5),
+            ('orange', 9, 14),
+            ('orange', 19, 140),
+            ('apple', 1, 1),
+            ('apple', 2, 2),
+            ('apple', 4, 4),
+            ('apple', 5, 5),
+            ('orange', 5, 5))
+
+    right = (('type', 'start', 'stop', 'value'),
+             ('apple', 1, 4, 'foo'),
+             ('apple', 3, 7, 'bar'),
+             ('orange', 4, 9, 'baz'))
+    
+    expect = (('fruit', 'begin', 'end', 'type', 'start', 'stop', 'value'),
+              ('apple', 1, 2, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 4, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 4, 'apple', 3, 7, 'bar'),
+              ('apple', 2, 5, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 5, 'apple', 3, 7, 'bar'),
+              ('orange', 2, 5, 'orange', 4, 9, 'baz'),
+              ('apple', 2, 2, 'apple', 1, 4, 'foo'),
+              ('apple', 4, 4, 'apple', 3, 7, 'bar'),
+              ('apple', 5, 5, 'apple', 3, 7, 'bar'),
+              ('orange', 5, 5, 'orange', 4, 9, 'baz'))
+
+    actual = intervaljoin(left, right, lstart='begin', lstop='end', 
+                          rstart='start', rstop='stop', lfacet='fruit',
+                          rfacet='type')
+
+    iassertequal(expect, actual)
+    iassertequal(expect, actual)
+
+               
+def test_intervalleftjoin_faceted():    
+
+    left = (('fruit', 'begin', 'end'),
+            ('apple', 1, 2),
+            ('apple', 2, 4),
+            ('apple', 2, 5),
+            ('orange', 2, 5),
+            ('orange', 9, 14),
+            ('orange', 19, 140),
+            ('apple', 1, 1),
+            ('apple', 2, 2),
+            ('apple', 4, 4),
+            ('apple', 5, 5),
+            ('orange', 5, 5))
+
+    right = (('type', 'start', 'stop', 'value'),
+             ('apple', 1, 4, 'foo'),
+             ('apple', 3, 7, 'bar'),
+             ('orange', 4, 9, 'baz'))
+    
+    expect = (('fruit', 'begin', 'end', 'type', 'start', 'stop', 'value'),
+              ('apple', 1, 2, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 4, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 4, 'apple', 3, 7, 'bar'),
+              ('apple', 2, 5, 'apple', 1, 4, 'foo'),
+              ('apple', 2, 5, 'apple', 3, 7, 'bar'),
+              ('orange', 2, 5, 'orange', 4, 9, 'baz'),
+              ('orange', 9, 14, None, None, None, None),
+              ('orange', 19, 140, None, None, None, None),
+              ('apple', 1, 1, None, None, None, None),
+              ('apple', 2, 2, 'apple', 1, 4, 'foo'),
+              ('apple', 4, 4, 'apple', 3, 7, 'bar'),
+              ('apple', 5, 5, 'apple', 3, 7, 'bar'),
+              ('orange', 5, 5, 'orange', 4, 9, 'baz'))
+
+    actual = intervalleftjoin(left, right, lstart='begin', lstop='end', 
+                              rstart='start', rstop='stop', lfacet='fruit',
+                              rfacet='type')
+
+    iassertequal(expect, actual)
+    iassertequal(expect, actual)
+
+                              

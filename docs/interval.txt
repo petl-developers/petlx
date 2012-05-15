@@ -11,4 +11,6 @@ Intervals (bx-python)
 .. autofunction:: facetintervallookupone
 .. autofunction:: facetintervalrecordlookup
 .. autofunction:: facetintervalrecordlookupone
+.. autofunction:: intervaljoin
+.. autofunction:: intervalleftjoin
 
