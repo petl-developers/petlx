@@ -73,21 +73,21 @@ class HybridRowView(RowContainer):
             yield HybridRow(row, fields, missing=None)
             
             
-def gff3lookup(features):
+def gff3lookup(features, facet='seqid'):
     """
     Build a GFF3 feature lookup based on interval trees. See also 
-    :func:facetintervallookup.
+    :func:`petlx.interval.facetintervallookup`.
     
     .. versionadded:: 0.2
     
     """
     
-    return facetintervallookup(features, key='seqid', start='start', stop='end')
+    return facetintervallookup(features, key=facet, start='start', stop='end')
 
 
 def gff3join(table, features, seqid='seqid', start='start', end='end', proximity=1):
     """
-    Join with a table of GFF3 features. See also :func:intervaljoin.
+    Join with a table of GFF3 features. See also :func:`petlx.interval.intervaljoin`.
     
     .. versionadded:: 0.2
     
@@ -100,7 +100,7 @@ def gff3join(table, features, seqid='seqid', start='start', end='end', proximity
     
 def gff3leftjoin(table, features, seqid='seqid', start='start', end='end', proximity=1):
     """
-    Left join with a table of GFF3 features. See also :func:intervalleftjoin.
+    Left join with a table of GFF3 features. See also :func:`petlx.interval.intervalleftjoin`.
     
     .. versionadded:: 0.2
     

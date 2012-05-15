@@ -3,6 +3,10 @@
 Intervals (bx-python)
 =====================
 
+The package bx.intervals is required. Instructions for installation
+can be found at https://bitbucket.org/james_taylor/bx-python/wiki/Home
+or try ``pip install bx-python``.
+    
 .. autofunction:: intervallookup
 .. autofunction:: intervallookupone
 .. autofunction:: intervalrecordlookup

@@ -85,9 +85,6 @@ def intervallookup(table, start='start', stop='stop', valuespec=None,
         >>> lkp[9]
         ['baz']
 
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-    
     .. versionadded:: 0.2
     
     """
@@ -143,9 +140,6 @@ def intervallookupone(table, start='start', stop='stop', valuespec=None, proximi
     
     See also :func:`intervallookup`.
 
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-    
     .. versionadded:: 0.2
     
     """
@@ -203,9 +197,6 @@ def intervalrecordlookup(table, start='start', stop='stop', proximity=0):
     As :func:`intervallookup` but return records (dictionaries of values indexed
     by field name). 
     
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-    
     .. versionadded:: 0.2
 
     """
@@ -223,9 +214,6 @@ def intervalrecordlookupone(table, start='start', stop='stop', proximity=0,
     As :func:`intervallookupone` but return records (dictionaries of values indexed
     by field name).
 
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-    
     .. versionadded:: 0.2
 
     """
@@ -279,9 +267,6 @@ def facetintervallookup(table, key, start='start', stop='stop',
         >>> lkp['orange'][5]
         [('orange', 4, 9, 'baz')]
 
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-        
     .. versionadded:: 0.2
     
     """
@@ -376,9 +361,6 @@ def facetintervallookupone(table, key, start='start', stop='stop',
     and there is more than one result, the first result is returned.
     
     See also :func:`facetintervallookup`.
-
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
     
     .. versionadded:: 0.2
     
@@ -412,9 +394,6 @@ def facetintervalrecordlookup(table, key, start='start', stop='stop', proximity=
     """
     As :func:`facetintervallookup` but return records (dictionaries of values indexed
     by field name). 
-
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
     
     .. versionadded:: 0.2
 
@@ -444,9 +423,6 @@ def facetintervalrecordlookupone(table, key, start, stop, proximity=0, strict=Tr
     As :func:`facetintervallookupone` but return records (dictionaries of values indexed
     by field name). 
 
-    The package bx.intervals is required. Instructions for installation can be found 
-    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.
-    
     .. versionadded:: 0.2
 
     """
