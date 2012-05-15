@@ -1,0 +1,138 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>GFF3 Utilities &mdash; petlx v0.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="petlx v0.2 documentation" href="index.html" />
+    <link rel="prev" title="Intervals (bx-python)" href="interval.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interval.html" title="Intervals (bx-python)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">petlx v0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-petlx.gff3"></span><div class="section" id="gff3-utilities">
+<h1>GFF3 Utilities<a class="headerlink" href="#gff3-utilities" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="petlx.gff3.fromgff3">
+<tt class="descclassname">petlx.gff3.</tt><tt class="descname">fromgff3</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/petlx/gff3.html#fromgff3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.gff3.fromgff3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract feature rows from a GFF3 file.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.gff3.gff3lookup">
+<tt class="descclassname">petlx.gff3.</tt><tt class="descname">gff3lookup</tt><big>(</big><em>features</em><big>)</big><a class="reference internal" href="_modules/petlx/gff3.html#gff3lookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.gff3.gff3lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a GFF3 feature lookup based on interval trees. See also 
+<a class="reference internal" href="interval.html#petlx.interval.facetintervallookup" title="petlx.interval.facetintervallookup"><tt class="xref py py-func docutils literal"><span class="pre">petlx.interval.facetintervallookup()</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.gff3.gff3join">
+<tt class="descclassname">petlx.gff3.</tt><tt class="descname">gff3join</tt><big>(</big><em>table</em>, <em>features</em>, <em>seqid='seqid'</em>, <em>start='start'</em>, <em>end='end'</em>, <em>proximity=1</em><big>)</big><a class="reference internal" href="_modules/petlx/gff3.html#gff3join"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.gff3.gff3join" title="Permalink to this definition">¶</a></dt>
+<dd><p>Join with a table of GFF3 features. See also <a class="reference internal" href="interval.html#petlx.interval.intervaljoin" title="petlx.interval.intervaljoin"><tt class="xref py py-func docutils literal"><span class="pre">petlx.interval.intervaljoin()</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.gff3.gff3leftjoin">
+<tt class="descclassname">petlx.gff3.</tt><tt class="descname">gff3leftjoin</tt><big>(</big><em>table</em>, <em>features</em>, <em>seqid='seqid'</em>, <em>start='start'</em>, <em>end='end'</em>, <em>proximity=1</em><big>)</big><a class="reference internal" href="_modules/petlx/gff3.html#gff3leftjoin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.gff3.gff3leftjoin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Left join with a table of GFF3 features. See also <a class="reference internal" href="interval.html#petlx.interval.intervalleftjoin" title="petlx.interval.intervalleftjoin"><tt class="xref py py-func docutils literal"><span class="pre">petlx.interval.intervalleftjoin()</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="interval.html"
+                        title="previous chapter">Intervals (bx-python)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/gff3.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interval.html" title="Intervals (bx-python)"
+             >previous</a> |</li>
+        <li><a href="index.html">petlx v0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alistair Miles.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

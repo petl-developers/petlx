@@ -1,0 +1,558 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Intervals (bx-python) &mdash; petlx v0.2 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="petlx v0.2 documentation" href="index.html" />
+    <link rel="next" title="GFF3 Utilities" href="gff3.html" />
+    <link rel="prev" title="Arrays (numpy)" href="array.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gff3.html" title="GFF3 Utilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="array.html" title="Arrays (numpy)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">petlx v0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-petlx.interval"></span><div class="section" id="intervals-bx-python">
+<h1>Intervals (bx-python)<a class="headerlink" href="#intervals-bx-python" title="Permalink to this headline">¶</a></h1>
+<p>The package bx.intervals is required. Instructions for installation
+can be found at <a class="reference external" href="https://bitbucket.org/james_taylor/bx-python/wiki/Home">https://bitbucket.org/james_taylor/bx-python/wiki/Home</a>
+or try <tt class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">bx-python</span></tt>.</p>
+<dl class="function">
+<dt id="petlx.interval.intervallookup">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervallookup</tt><big>(</big><em>table</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>valuespec=None</em>, <em>proximity=0</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervallookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervallookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an interval lookup for the given table. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx</span> <span class="kn">import</span> <span class="n">intervallookup</span>    
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s">&#39;baz&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span> <span class="o">=</span> <span class="n">intervallookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;stop&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[(1, 4, &#39;foo&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[(1, 4, &#39;foo&#39;), (3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(1, 4, &#39;foo&#39;), (3, 7, &#39;bar&#39;), (4, 9, &#39;baz&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">19</span><span class="p">:</span><span class="mi">140</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[(1, 4, &#39;foo&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[(3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(3, 7, &#39;bar&#39;), (4, 9, &#39;baz&#39;)]</span>
+</pre></div>
+</div>
+<p>Note that there must be a non-zero overlap between the query and the interval
+for the interval to be retrieved, hence <cite>lkp[1]</cite> returns nothing. Use the 
+<cite>proximity</cite> keyword argument to find intervals within a given distance of
+the query.</p>
+<p>Some examples using the <cite>proximity</cite> and <cite>valuespec</cite> keyword arguments:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="p">[[</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="s">&#39;value&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s">&#39;foo&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="s">&#39;bar&#39;</span><span class="p">],</span>
+<span class="gp">... </span>         <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="s">&#39;baz&#39;</span><span class="p">]]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span> <span class="o">=</span> <span class="n">intervallookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">valuespec</span><span class="o">=</span><span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+<span class="go">[&#39;baz&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">19</span><span class="p">:</span><span class="mi">140</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[&#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span>
+<span class="go">[&#39;baz&#39;]</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.intervallookupone">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervallookupone</tt><big>(</big><em>table</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>valuespec=None</em>, <em>proximity=0</em>, <em>strict=True</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervallookupone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervallookupone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an interval lookup for the given table, returning at most one
+result for each query. If <tt class="docutils literal"><span class="pre">strict=True</span></tt> is given, queries returning more
+than one result will raise a <cite>DuplicateKeyError</cite>. If <tt class="docutils literal"><span class="pre">strict=False</span></tt> is given,
+and there is more than one result, the first result is returned.</p>
+<p>See also <a class="reference internal" href="#petlx.interval.intervallookup" title="petlx.interval.intervallookup"><tt class="xref py py-func docutils literal"><span class="pre">intervallookup()</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.intervalrecordlookup">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervalrecordlookup</tt><big>(</big><em>table</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>proximity=0</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervalrecordlookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervalrecordlookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>As <a class="reference internal" href="#petlx.interval.intervallookup" title="petlx.interval.intervallookup"><tt class="xref py py-func docutils literal"><span class="pre">intervallookup()</span></tt></a> but return records (dictionaries of values indexed
+by field name).</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.intervalrecordlookupone">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervalrecordlookupone</tt><big>(</big><em>table</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>proximity=0</em>, <em>strict=True</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervalrecordlookupone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervalrecordlookupone" title="Permalink to this definition">¶</a></dt>
+<dd><p>As <a class="reference internal" href="#petlx.interval.intervallookupone" title="petlx.interval.intervallookupone"><tt class="xref py py-func docutils literal"><span class="pre">intervallookupone()</span></tt></a> but return records (dictionaries of values indexed
+by field name).</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.facetintervallookup">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">facetintervallookup</tt><big>(</big><em>table</em>, <em>key</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>valuespec=None</em>, <em>proximity=0</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#facetintervallookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.facetintervallookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a faceted interval lookup for the given table. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petl</span> <span class="kn">import</span> <span class="n">look</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx.interval</span> <span class="kn">import</span> <span class="n">facetintervallookup</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+==========+=========+========+=========+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span> <span class="o">=</span> <span class="n">facetintervallookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 1, 4, &#39;foo&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 1, 4, &#39;foo&#39;), (&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 1, 4, &#39;foo&#39;), (&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;orange&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(&#39;orange&#39;, 4, 9, &#39;baz&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;orange&#39;</span><span class="p">][</span><span class="mi">9</span><span class="p">:</span><span class="mi">14</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;orange&#39;</span><span class="p">][</span><span class="mi">19</span><span class="p">:</span><span class="mi">140</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 1, 4, &#39;foo&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;apple&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lkp</span><span class="p">[</span><span class="s">&#39;orange&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+<span class="go">[(&#39;orange&#39;, 4, 9, &#39;baz&#39;)]</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.facetintervallookupone">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">facetintervallookupone</tt><big>(</big><em>table</em>, <em>key</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>valuespec=None</em>, <em>proximity=0</em>, <em>strict=True</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#facetintervallookupone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.facetintervallookupone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a faceted interval lookup for the given table, returning at most one
+result for each query, e.g.:</p>
+<div class="highlight-python"><pre>&gt;&gt;&gt; from petl import look
+&gt;&gt;&gt; from petlx.interval import facetintervallookupone
+&gt;&gt;&gt; look(table)
++----------+---------+--------+---------+
+| 'type'   | 'start' | 'stop' | 'value' |
++==========+=========+========+=========+
+| 'apple'  | 1       | 4      | 'foo'   |
++----------+---------+--------+---------+
+| 'apple'  | 3       | 7      | 'bar'   |
++----------+---------+--------+---------+
+| 'orange' | 4       | 9      | 'baz'   |
++----------+---------+--------+---------+
+
+&gt;&gt;&gt; lkp = facetintervallookupone(table, key='type', start='start', stop='stop', valuespec='value')
+&gt;&gt;&gt; lkp['apple'][1:2]
+'foo'
+&gt;&gt;&gt; lkp['apple'][2:4]
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "petlx/interval.py", line 191, in __getitem__
+    raise DuplicateKeyError
+petl.util.DuplicateKeyError
+&gt;&gt;&gt; lkp['apple'][2:5]
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "petlx/interval.py", line 191, in __getitem__
+    raise DuplicateKeyError
+petl.util.DuplicateKeyError
+&gt;&gt;&gt; lkp['apple'][4:5]
+'bar'
+&gt;&gt;&gt; lkp['orange'][4:5]
+'baz'
+&gt;&gt;&gt; lkp['apple'][5:7]
+'bar'
+&gt;&gt;&gt; lkp['orange'][5:7]
+'baz'
+&gt;&gt;&gt; lkp['apple'][8:9]
+&gt;&gt;&gt; lkp['orange'][8:9]
+'baz'
+&gt;&gt;&gt; lkp['orange'][9:14]
+&gt;&gt;&gt; lkp['orange'][19:140]
+&gt;&gt;&gt; lkp['apple'][1]
+&gt;&gt;&gt; lkp['apple'][2]
+'foo'
+&gt;&gt;&gt; lkp['apple'][4]
+'bar'
+&gt;&gt;&gt; lkp['apple'][5]
+'bar'
+&gt;&gt;&gt; lkp['orange'][5]
+'baz'
+&gt;&gt;&gt; lkp['apple'][8]
+&gt;&gt;&gt; lkp['orange'][8]
+'baz'</pre>
+</div>
+<p>If <tt class="docutils literal"><span class="pre">strict=True</span></tt> is given, queries returning more
+than one result will raise a <cite>DuplicateKeyError</cite>. If <tt class="docutils literal"><span class="pre">strict=False</span></tt> is given,
+and there is more than one result, the first result is returned.</p>
+<p>See also <a class="reference internal" href="#petlx.interval.facetintervallookup" title="petlx.interval.facetintervallookup"><tt class="xref py py-func docutils literal"><span class="pre">facetintervallookup()</span></tt></a>.</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.facetintervalrecordlookup">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">facetintervalrecordlookup</tt><big>(</big><em>table</em>, <em>key</em>, <em>start='start'</em>, <em>stop='stop'</em>, <em>proximity=0</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#facetintervalrecordlookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.facetintervalrecordlookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>As <a class="reference internal" href="#petlx.interval.facetintervallookup" title="petlx.interval.facetintervallookup"><tt class="xref py py-func docutils literal"><span class="pre">facetintervallookup()</span></tt></a> but return records (dictionaries of values indexed
+by field name).</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.facetintervalrecordlookupone">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">facetintervalrecordlookupone</tt><big>(</big><em>table</em>, <em>key</em>, <em>start</em>, <em>stop</em>, <em>proximity=0</em>, <em>strict=True</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#facetintervalrecordlookupone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.facetintervalrecordlookupone" title="Permalink to this definition">¶</a></dt>
+<dd><p>As <a class="reference internal" href="#petlx.interval.facetintervallookupone" title="petlx.interval.facetintervallookupone"><tt class="xref py py-func docutils literal"><span class="pre">facetintervallookupone()</span></tt></a> but return records (dictionaries of values indexed
+by field name).</p>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.intervaljoin">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervaljoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>lstart='start'</em>, <em>lstop='stop'</em>, <em>rstart='start'</em>, <em>rstop='stop'</em>, <em>lfacet=None</em>, <em>rfacet=None</em>, <em>proximity=0</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervaljoin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervaljoin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Join two tables by overlapping intervals. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petl</span> <span class="kn">import</span> <span class="n">look</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx.interval</span> <span class="kn">import</span> <span class="n">intervaljoin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| &#39;begin&#39; | &#39;end&#39; | &#39;quux&#39; |</span>
+<span class="go">+=========+=======+========+</span>
+<span class="go">| 1       | 2     | &#39;a&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 2       | 4     | &#39;b&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 2       | 5     | &#39;c&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 9       | 14    | &#39;d&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 9       | 140   | &#39;e&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 1       | 1     | &#39;f&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 2       | 2     | &#39;g&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 4       | 4     | &#39;h&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 5       | 5     | &#39;i&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+<span class="go">| 1       | 8     | &#39;j&#39;    |</span>
+<span class="go">+---------+-------+--------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+<span class="go">+---------+--------+---------+</span>
+<span class="go">| &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+=========+========+=========+</span>
+<span class="go">| 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+---------+--------+---------+</span>
+<span class="go">| 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+---------+--------+---------+</span>
+<span class="go">| 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+---------+--------+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intervaljoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;begin&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> 
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| &#39;begin&#39; | &#39;end&#39; | &#39;quux&#39; | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+=========+=======+========+=========+========+=========+</span>
+<span class="go">| 1       | 2     | &#39;a&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 4     | &#39;b&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 4     | &#39;b&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 5     | &#39;c&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 5     | &#39;c&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 5     | &#39;c&#39;    | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 2       | 2     | &#39;g&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 4       | 4     | &#39;h&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 5       | 5     | &#39;i&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+<span class="go">| 5       | 5     | &#39;i&#39;    | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+---------+-------+--------+---------+--------+---------+</span>
+</pre></div>
+</div>
+<p>An additional key comparison can be added, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petl</span> <span class="kn">import</span> <span class="n">look</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx.interval</span> <span class="kn">import</span> <span class="n">intervaljoin</span>    
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; |</span>
+<span class="go">+==========+=========+=======+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 2     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 9       | 14    |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 19      | 140   |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 1     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 2     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 4       | 4     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 5       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+==========+=========+========+=========+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intervaljoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;begin&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="s">&#39;fruit&#39;</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="s">&#39;type&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+==========+=========+=======+==========+=========+========+=========+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 4       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 5       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 5       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="petlx.interval.intervalleftjoin">
+<tt class="descclassname">petlx.interval.</tt><tt class="descname">intervalleftjoin</tt><big>(</big><em>left</em>, <em>right</em>, <em>lstart='start'</em>, <em>lstop='stop'</em>, <em>rstart='start'</em>, <em>rstop='stop'</em>, <em>lfacet=None</em>, <em>rfacet=None</em>, <em>proximity=0</em>, <em>missing=None</em><big>)</big><a class="reference internal" href="_modules/petlx/interval.html#intervalleftjoin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.interval.intervalleftjoin" title="Permalink to this definition">¶</a></dt>
+<dd><p>Like <a class="reference internal" href="#petlx.interval.intervaljoin" title="petlx.interval.intervaljoin"><tt class="xref py py-func docutils literal"><span class="pre">intervaljoin()</span></tt></a> but rows from the left table without a match
+in the right table are also included. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petl</span> <span class="kn">import</span> <span class="n">look</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx.interval</span> <span class="kn">import</span> <span class="n">intervalleftjoin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; |</span>
+<span class="go">+==========+=========+=======+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 2     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 9       | 14    |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;orange&#39; | 19      | 140   |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 1     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 2     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 4       | 4     |</span>
+<span class="go">+----------+---------+-------+</span>
+<span class="go">| &#39;apple&#39;  | 5       | 5     |</span>
+<span class="go">+----------+---------+-------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+==========+=========+========+=========+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+--------+---------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">intervalleftjoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;begin&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="go">+==========+=========+=======+==========+=========+========+=========+</span>
+<span class="go">| &#39;apple&#39;  | 1       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;apple&#39;  | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="go">| &#39;orange&#39; | 9       | 14    | None     | None    | None   | None    |</span>
+<span class="go">+----------+---------+-------+----------+---------+--------+---------+</span>
+</pre></div>
+</div>
+<p class="versionadded">
+<span class="versionmodified">New in version 0.2.</span></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="array.html"
+                        title="previous chapter">Arrays (numpy)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="gff3.html"
+                        title="next chapter">GFF3 Utilities</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/interval.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="gff3.html" title="GFF3 Utilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="array.html" title="Arrays (numpy)"
+             >previous</a> |</li>
+        <li><a href="index.html">petlx v0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alistair Miles.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

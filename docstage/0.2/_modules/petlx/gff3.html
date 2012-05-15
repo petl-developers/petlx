@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>petlx.gff3 &mdash; petlx v0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="petlx v0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">petlx v0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for petlx.gff3</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Utilities for working with GFF3 files.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">petl.io</span> <span class="kn">import</span> <span class="n">fromtsv</span>
+<span class="kn">from</span> <span class="nn">petl.transform</span> <span class="kn">import</span> <span class="n">skipcomments</span><span class="p">,</span> <span class="n">rowlenselect</span><span class="p">,</span> <span class="n">convert</span><span class="p">,</span> <span class="n">pushheader</span>
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="kn">import</span> <span class="n">unquote_plus</span>
+<span class="kn">from</span> <span class="nn">petl.util</span> <span class="kn">import</span> <span class="n">HybridRow</span>
+<span class="kn">from</span> <span class="nn">petl.base</span> <span class="kn">import</span> <span class="n">RowContainer</span>
+<span class="kn">from</span> <span class="nn">petlx.interval</span> <span class="kn">import</span> <span class="n">facetintervallookup</span><span class="p">,</span> <span class="n">intervaljoin</span><span class="p">,</span> <span class="n">intervalleftjoin</span>
+
+
+<span class="k">def</span> <span class="nf">gff3_parse_attributes</span><span class="p">(</span><span class="n">attributes_string</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a string of GFF3 attributes (&#39;key=value&#39; pairs delimited by &#39;;&#39;) </span>
+<span class="sd">    and return a dictionary.</span>
+<span class="sd">  </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">      </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">attributes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">attributes_string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;=&#39;</span><span class="p">)</span>
+        <span class="n">attributes</span><span class="p">[</span><span class="n">unquote_plus</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="o">=</span> <span class="n">unquote_plus</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> 
+    <span class="k">return</span> <span class="n">attributes</span>
+
+
+<div class="viewcode-block" id="fromgff3"><a class="viewcode-back" href="../../gff3.html#petlx.gff3.fromgff3">[docs]</a><span class="k">def</span> <span class="nf">fromgff3</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract feature rows from a GFF3 file. </span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="c"># parse file as tab-delimited</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">fromtsv</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    
+    <span class="c"># push header</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">pushheader</span><span class="p">(</span><span class="n">t0</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;type&#39;</span><span class="p">,</span> <span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="s">&#39;score&#39;</span><span class="p">,</span> <span class="s">&#39;strand&#39;</span><span class="p">,</span> <span class="s">&#39;phase&#39;</span><span class="p">,</span> <span class="s">&#39;attributes&#39;</span><span class="p">))</span>
+
+    <span class="c"># skip comments</span>
+    <span class="n">t2</span> <span class="o">=</span> <span class="n">skipcomments</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">)</span>
+    
+    <span class="c"># ignore any row not 9 values long (e.g., trailing fasta)</span>
+    <span class="n">t3</span> <span class="o">=</span> <span class="n">rowlenselect</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+    
+    <span class="c"># parse attributes into a dict</span>
+    <span class="n">t4</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">t3</span><span class="p">,</span> <span class="s">&#39;attributes&#39;</span><span class="p">,</span> <span class="n">gff3_parse_attributes</span><span class="p">)</span>
+    
+    <span class="c"># parse coordinates</span>
+    <span class="n">t5</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">t4</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">HybridRowView</span><span class="p">(</span><span class="n">t5</span><span class="p">)</span>
+
+
+<span class="c"># TODO move this to petl.base?</span></div>
+<span class="k">class</span> <span class="nc">HybridRowView</span><span class="p">(</span><span class="n">RowContainer</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wrapped</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span> <span class="o">=</span> <span class="n">wrapped</span>
+        
+    <span class="k">def</span> <span class="nf">cachetag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span><span class="o">.</span><span class="n">cachetag</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wrapped</span><span class="p">)</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="k">yield</span> <span class="n">fields</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">HybridRow</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+            
+            
+<div class="viewcode-block" id="gff3lookup"><a class="viewcode-back" href="../../gff3.html#petlx.gff3.gff3lookup">[docs]</a><span class="k">def</span> <span class="nf">gff3lookup</span><span class="p">(</span><span class="n">features</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a GFF3 feature lookup based on interval trees. See also </span>
+<span class="sd">    :func:facetintervallookup.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">facetintervallookup</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="gff3join"><a class="viewcode-back" href="../../gff3.html#petlx.gff3.gff3join">[docs]</a><span class="k">def</span> <span class="nf">gff3join</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">seqid</span><span class="o">=</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Join with a table of GFF3 features. See also :func:intervaljoin.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">intervaljoin</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="n">seqid</span><span class="p">,</span>
+                        <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> 
+                        <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+
+    </div>
+<div class="viewcode-block" id="gff3leftjoin"><a class="viewcode-back" href="../../gff3.html#petlx.gff3.gff3leftjoin">[docs]</a><span class="k">def</span> <span class="nf">gff3leftjoin</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">seqid</span><span class="o">=</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Left join with a table of GFF3 features. See also :func:intervalleftjoin.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">intervalleftjoin</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="n">seqid</span><span class="p">,</span>
+                            <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="s">&#39;seqid&#39;</span><span class="p">,</span> 
+                            <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+
+    </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">petlx v0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alistair Miles.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

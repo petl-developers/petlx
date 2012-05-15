@@ -1,0 +1,961 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>petlx.interval &mdash; petlx v0.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="petlx v0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">petlx v0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for petlx.interval</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for working with intervals.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">itemgetter</span>
+
+<span class="kn">from</span> <span class="nn">petlx.util</span> <span class="kn">import</span> <span class="n">UnsatisfiedDependency</span>
+<span class="kn">from</span> <span class="nn">petl.util</span> <span class="kn">import</span> <span class="n">asindices</span><span class="p">,</span> <span class="n">DuplicateKeyError</span><span class="p">,</span> <span class="n">records</span><span class="p">,</span> <span class="n">asdict</span>
+<span class="kn">from</span> <span class="nn">petl.base</span> <span class="kn">import</span> <span class="n">RowContainer</span>
+<span class="kn">from</span> <span class="nn">petl.io</span> <span class="kn">import</span> <span class="n">Uncacheable</span>
+
+
+<span class="n">dep_message</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="s">at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try pip install bx-python.</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">bx.intervals</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">UnsatisfiedDependency</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">dep_message</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="intervallookup"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervallookup">[docs]</a><span class="k">def</span> <span class="nf">intervallookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">valuespec</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> 
+                   <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct an interval lookup for the given table. E.g.::</span>
+
+<span class="sd">        &gt;&gt;&gt; from petlx import intervallookup    </span>
+<span class="sd">        &gt;&gt;&gt; table = [[&#39;start&#39;, &#39;stop&#39;, &#39;value&#39;],</span>
+<span class="sd">        ...          [1, 4, &#39;foo&#39;],</span>
+<span class="sd">        ...          [3, 7, &#39;bar&#39;],</span>
+<span class="sd">        ...          [4, 9, &#39;baz&#39;]]</span>
+<span class="sd">        &gt;&gt;&gt; lkp = intervallookup(table, &#39;start&#39;, &#39;stop&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; lkp[1:2]</span>
+<span class="sd">        [(1, 4, &#39;foo&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2:4]</span>
+<span class="sd">        [(1, 4, &#39;foo&#39;), (3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2:5]</span>
+<span class="sd">        [(1, 4, &#39;foo&#39;), (3, 7, &#39;bar&#39;), (4, 9, &#39;baz&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[9:14]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[19:140]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[1]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2]</span>
+<span class="sd">        [(1, 4, &#39;foo&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[4]</span>
+<span class="sd">        [(3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[5]</span>
+<span class="sd">        [(3, 7, &#39;bar&#39;), (4, 9, &#39;baz&#39;)]</span>
+
+<span class="sd">    Note that there must be a non-zero overlap between the query and the interval</span>
+<span class="sd">    for the interval to be retrieved, hence `lkp[1]` returns nothing. Use the </span>
+<span class="sd">    `proximity` keyword argument to find intervals within a given distance of</span>
+<span class="sd">    the query.</span>
+<span class="sd">    </span>
+<span class="sd">    Some examples using the `proximity` and `valuespec` keyword arguments::</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; table = [[&#39;start&#39;, &#39;stop&#39;, &#39;value&#39;],</span>
+<span class="sd">        ...          [1, 4, &#39;foo&#39;],</span>
+<span class="sd">        ...          [3, 7, &#39;bar&#39;],</span>
+<span class="sd">        ...          [4, 9, &#39;baz&#39;]]</span>
+<span class="sd">        &gt;&gt;&gt; lkp = intervallookup(table, &#39;start&#39;, &#39;stop&#39;, valuespec=&#39;value&#39;, proximity=1)</span>
+<span class="sd">        &gt;&gt;&gt; lkp[1:2]</span>
+<span class="sd">        [&#39;foo&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2:4]</span>
+<span class="sd">        [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2:5]</span>
+<span class="sd">        [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[9:14]</span>
+<span class="sd">        [&#39;baz&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[19:140]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[1]</span>
+<span class="sd">        [&#39;foo&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[2]</span>
+<span class="sd">        [&#39;foo&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[4]</span>
+<span class="sd">        [&#39;foo&#39;, &#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[5]</span>
+<span class="sd">        [&#39;bar&#39;, &#39;baz&#39;]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[9]</span>
+<span class="sd">        [&#39;baz&#39;]</span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">valuespec</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">valuespec</span> <span class="o">=</span> <span class="n">fields</span> <span class="c"># default valuespec is complete row</span>
+    <span class="n">valueindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">valuespec</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valueindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid valuespec&#39;</span>
+    <span class="n">getvalue</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">valueindices</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getvalue</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">IntervalTreeWrapper</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+
+</div>
+<span class="k">class</span> <span class="nc">IntervalTreeWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tree</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span> <span class="o">=</span> <span class="n">proximity</span>
+        
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">item</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">item</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;invalid item request&#39;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span>
+            
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    
+            
+<div class="viewcode-block" id="intervallookupone"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervallookupone">[docs]</a><span class="k">def</span> <span class="nf">intervallookupone</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">valuespec</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct an interval lookup for the given table, returning at most one</span>
+<span class="sd">    result for each query. If ``strict=True`` is given, queries returning more</span>
+<span class="sd">    than one result will raise a `DuplicateKeyError`. If ``strict=False`` is given,</span>
+<span class="sd">    and there is more than one result, the first result is returned.</span>
+<span class="sd">    </span>
+<span class="sd">    See also :func:`intervallookup`.</span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">valuespec</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">valuespec</span> <span class="o">=</span> <span class="n">fields</span> <span class="c"># default valuespec is complete row</span>
+    <span class="n">valueindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">valuespec</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valueindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid valuespec&#39;</span>
+    <span class="n">getvalue</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">valueindices</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getvalue</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">IntervalTreeReturnOneWrapper</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+
+</div>
+<span class="k">class</span> <span class="nc">IntervalTreeReturnOneWrapper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">tree</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">tree</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span> <span class="o">=</span> <span class="n">proximity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strict</span> <span class="o">=</span> <span class="n">strict</span>
+        
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">item</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">item</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&#39;invalid item request&#39;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DuplicateKeyError</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    
+            
+<div class="viewcode-block" id="intervalrecordlookup"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervalrecordlookup">[docs]</a><span class="k">def</span> <span class="nf">intervalrecordlookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    As :func:`intervallookup` but return records (dictionaries of values indexed</span>
+<span class="sd">    by field name). </span>
+<span class="sd">    </span>
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">rec</span> <span class="ow">and</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">rec</span><span class="p">:</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rec</span><span class="p">[</span><span class="n">start</span><span class="p">],</span> <span class="n">rec</span><span class="p">[</span><span class="n">stop</span><span class="p">],</span> <span class="n">rec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">IntervalTreeWrapper</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="intervalrecordlookupone"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervalrecordlookupone">[docs]</a><span class="k">def</span> <span class="nf">intervalrecordlookupone</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> 
+                            <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    As :func:`intervallookupone` but return records (dictionaries of values indexed</span>
+<span class="sd">    by field name).</span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">bx</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">intersection</span><span class="o">.</span><span class="n">IntervalTree</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">(</span><span class="n">table</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">rec</span> <span class="ow">and</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">rec</span><span class="p">:</span>
+            <span class="n">tree</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">rec</span><span class="p">[</span><span class="n">start</span><span class="p">],</span> <span class="n">rec</span><span class="p">[</span><span class="n">stop</span><span class="p">],</span> <span class="n">rec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">IntervalTreeReturnOneWrapper</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="facetintervallookup"><a class="viewcode-back" href="../../interval.html#petlx.interval.facetintervallookup">[docs]</a><span class="k">def</span> <span class="nf">facetintervallookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> 
+                        <span class="n">valuespec</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a faceted interval lookup for the given table. E.g.::</span>
+
+<span class="sd">        &gt;&gt;&gt; from petl import look</span>
+<span class="sd">        &gt;&gt;&gt; from petlx.interval import facetintervallookup</span>
+<span class="sd">        &gt;&gt;&gt; look(table)</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; lkp = facetintervallookup(table, key=&#39;type&#39;, start=&#39;start&#39;, stop=&#39;stop&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][1:2]</span>
+<span class="sd">        [(&#39;apple&#39;, 1, 4, &#39;foo&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2:4]</span>
+<span class="sd">        [(&#39;apple&#39;, 1, 4, &#39;foo&#39;), (&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2:5]</span>
+<span class="sd">        [(&#39;apple&#39;, 1, 4, &#39;foo&#39;), (&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][2:5]</span>
+<span class="sd">        [(&#39;orange&#39;, 4, 9, &#39;baz&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][9:14]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][19:140]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][1]</span>
+<span class="sd">        []</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2]</span>
+<span class="sd">        [(&#39;apple&#39;, 1, 4, &#39;foo&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][4]</span>
+<span class="sd">        [(&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][5]</span>
+<span class="sd">        [(&#39;apple&#39;, 3, 7, &#39;bar&#39;)]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][5]</span>
+<span class="sd">        [(&#39;orange&#39;, 4, 9, &#39;baz&#39;)]</span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">        </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">valuespec</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">valuespec</span> <span class="o">=</span> <span class="n">fields</span> <span class="c"># default valuespec is complete row</span>
+    <span class="n">valueindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">valuespec</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valueindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid valuespec&#39;</span>
+    <span class="n">getvalue</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">valueindices</span><span class="p">)</span>
+    <span class="n">keyindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid key&#39;</span>
+    <span class="n">getkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">keyindices</span><span class="p">)</span>
+
+    <span class="n">trees</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">getkey</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+            <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">IntervalTreeWrapper</span><span class="p">(</span><span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+        <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getvalue</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">trees</span>
+
+</div>
+<div class="viewcode-block" id="facetintervallookupone"><a class="viewcode-back" href="../../interval.html#petlx.interval.facetintervallookupone">[docs]</a><span class="k">def</span> <span class="nf">facetintervallookupone</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> 
+                           <span class="n">valuespec</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a faceted interval lookup for the given table, returning at most one</span>
+<span class="sd">    result for each query, e.g.::</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; from petl import look</span>
+<span class="sd">        &gt;&gt;&gt; from petlx.interval import facetintervallookupone</span>
+<span class="sd">        &gt;&gt;&gt; look(table)</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; lkp = facetintervallookupone(table, key=&#39;type&#39;, start=&#39;start&#39;, stop=&#39;stop&#39;, valuespec=&#39;value&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][1:2]</span>
+<span class="sd">        &#39;foo&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2:4]</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;</span>
+<span class="sd">          File &quot;petlx/interval.py&quot;, line 191, in __getitem__</span>
+<span class="sd">            raise DuplicateKeyError</span>
+<span class="sd">        petl.util.DuplicateKeyError</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2:5]</span>
+<span class="sd">        Traceback (most recent call last):</span>
+<span class="sd">          File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;</span>
+<span class="sd">          File &quot;petlx/interval.py&quot;, line 191, in __getitem__</span>
+<span class="sd">            raise DuplicateKeyError</span>
+<span class="sd">        petl.util.DuplicateKeyError</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][4:5]</span>
+<span class="sd">        &#39;bar&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][4:5]</span>
+<span class="sd">        &#39;baz&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][5:7]</span>
+<span class="sd">        &#39;bar&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][5:7]</span>
+<span class="sd">        &#39;baz&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][8:9]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][8:9]</span>
+<span class="sd">        &#39;baz&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][9:14]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][19:140]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][1]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][2]</span>
+<span class="sd">        &#39;foo&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][4]</span>
+<span class="sd">        &#39;bar&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][5]</span>
+<span class="sd">        &#39;bar&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][5]</span>
+<span class="sd">        &#39;baz&#39;</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;apple&#39;][8]</span>
+<span class="sd">        &gt;&gt;&gt; lkp[&#39;orange&#39;][8]</span>
+<span class="sd">        &#39;baz&#39;</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    If ``strict=True`` is given, queries returning more</span>
+<span class="sd">    than one result will raise a `DuplicateKeyError`. If ``strict=False`` is given,</span>
+<span class="sd">    and there is more than one result, the first result is returned.</span>
+<span class="sd">    </span>
+<span class="sd">    See also :func:`facetintervallookup`.</span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">valuespec</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">valuespec</span> <span class="o">=</span> <span class="n">fields</span> <span class="c"># default valuespec is complete row</span>
+    <span class="n">valueindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">valuespec</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">valueindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid valuespec&#39;</span>
+    <span class="n">getvalue</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">valueindices</span><span class="p">)</span>
+    <span class="n">keyindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid key&#39;</span>
+    <span class="n">getkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">keyindices</span><span class="p">)</span>
+
+    <span class="n">trees</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">getkey</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+            <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">IntervalTreeReturnOneWrapper</span><span class="p">(</span><span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+        <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getvalue</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">trees</span>
+
+</div>
+<div class="viewcode-block" id="facetintervalrecordlookup"><a class="viewcode-back" href="../../interval.html#petlx.interval.facetintervalrecordlookup">[docs]</a><span class="k">def</span> <span class="nf">facetintervalrecordlookup</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    As :func:`facetintervallookup` but return records (dictionaries of values indexed</span>
+<span class="sd">    by field name). </span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="n">keyindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid key&#39;</span>
+    <span class="n">getkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">keyindices</span><span class="p">)</span>
+
+    <span class="n">trees</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">getkey</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+            <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">IntervalTreeWrapper</span><span class="p">(</span><span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+        <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">asdict</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">trees</span>
+
+</div>
+<div class="viewcode-block" id="facetintervalrecordlookupone"><a class="viewcode-back" href="../../interval.html#petlx.interval.facetintervalrecordlookupone">[docs]</a><span class="k">def</span> <span class="nf">facetintervalrecordlookupone</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    As :func:`facetintervallookupone` but return records (dictionaries of values indexed</span>
+<span class="sd">    by field name). </span>
+
+<span class="sd">    The package bx.intervals is required. Instructions for installation can be found </span>
+<span class="sd">    at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try ``pip install bx-python``.</span>
+<span class="sd">    </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="n">it</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">start</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;start field not recognised&#39;</span>
+    <span class="k">assert</span> <span class="n">stop</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">,</span> <span class="s">&#39;stop field not recognised&#39;</span>
+    <span class="n">getstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">getstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">stop</span><span class="p">))</span>
+    <span class="n">keyindices</span> <span class="o">=</span> <span class="n">asindices</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyindices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;invalid key&#39;</span>
+    <span class="n">getkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">keyindices</span><span class="p">)</span>
+
+    <span class="n">trees</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">it</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">getkey</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">trees</span><span class="p">:</span>
+            <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">IntervalTreeReturnOneWrapper</span><span class="p">(</span><span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">)</span>
+        <span class="n">trees</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">getstart</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">getstop</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="n">asdict</span><span class="p">(</span><span class="n">fields</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">trees</span>
+
+</div>
+<div class="viewcode-block" id="intervaljoin"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervaljoin">[docs]</a><span class="k">def</span> <span class="nf">intervaljoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span>
+                 <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Join two tables by overlapping intervals. E.g.::</span>
+
+<span class="sd">        &gt;&gt;&gt; from petl import look</span>
+<span class="sd">        &gt;&gt;&gt; from petlx.interval import intervaljoin</span>
+<span class="sd">        &gt;&gt;&gt; look(left)</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | &#39;begin&#39; | &#39;end&#39; | &#39;quux&#39; |</span>
+<span class="sd">        +=========+=======+========+</span>
+<span class="sd">        | 1       | 2     | &#39;a&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 2       | 4     | &#39;b&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 2       | 5     | &#39;c&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 9       | 14    | &#39;d&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 9       | 140   | &#39;e&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 1       | 1     | &#39;f&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 2       | 2     | &#39;g&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 4       | 4     | &#39;h&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 5       | 5     | &#39;i&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        | 1       | 8     | &#39;j&#39;    |</span>
+<span class="sd">        +---------+-------+--------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; look(right)</span>
+<span class="sd">        +---------+--------+---------+</span>
+<span class="sd">        | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +=========+========+=========+</span>
+<span class="sd">        | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +---------+--------+---------+</span>
+<span class="sd">        | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +---------+--------+---------+</span>
+<span class="sd">        | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; result = intervaljoin(left, right, lstart=&#39;begin&#39;, lstop=&#39;end&#39;, rstart=&#39;start&#39;, rstop=&#39;stop&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; look(result) </span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | &#39;begin&#39; | &#39;end&#39; | &#39;quux&#39; | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +=========+=======+========+=========+========+=========+</span>
+<span class="sd">        | 1       | 2     | &#39;a&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 4     | &#39;b&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 4     | &#39;b&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 5     | &#39;c&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 5     | &#39;c&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 5     | &#39;c&#39;    | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 2       | 2     | &#39;g&#39;    | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 4       | 4     | &#39;h&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 5       | 5     | &#39;i&#39;    | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">        | 5       | 5     | &#39;i&#39;    | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +---------+-------+--------+---------+--------+---------+</span>
+<span class="sd">    </span>
+<span class="sd">    An additional key comparison can be added, e.g.::</span>
+<span class="sd">    </span>
+<span class="sd">        &gt;&gt;&gt; from petl import look</span>
+<span class="sd">        &gt;&gt;&gt; from petlx.interval import intervaljoin    </span>
+<span class="sd">        &gt;&gt;&gt; look(left)</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; |</span>
+<span class="sd">        +==========+=========+=======+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 2     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 9       | 14    |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 19      | 140   |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 1     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 2     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 4       | 4     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 5       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; look(right)</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; result = intervaljoin(left, right, lstart=&#39;begin&#39;, lstop=&#39;end&#39;, rstart=&#39;start&#39;, rstop=&#39;stop&#39;, lfacet=&#39;fruit&#39;, rfacet=&#39;type&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; look(result)</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+=======+==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 4       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 5       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 5       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">IntervalJoinView</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="n">lstart</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="n">lstop</span><span class="p">,</span>
+                            <span class="n">rstart</span><span class="o">=</span><span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="n">rstop</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="n">lfacet</span><span class="p">,</span>
+                            <span class="n">rfacet</span><span class="o">=</span><span class="n">rfacet</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+
+</div>
+<span class="k">class</span> <span class="nc">IntervalJoinView</span><span class="p">(</span><span class="n">RowContainer</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> 
+                 <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstart</span> <span class="o">=</span> <span class="n">lstart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstop</span> <span class="o">=</span> <span class="n">lstop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lfacet</span> <span class="o">=</span> <span class="n">lfacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rstart</span> <span class="o">=</span> <span class="n">rstart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rstop</span> <span class="o">=</span> <span class="n">rstop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rfacet</span> <span class="o">=</span> <span class="n">rfacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span> <span class="o">=</span> <span class="n">proximity</span>
+        <span class="c"># TODO guard niether or both facet fields None</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">iterintervaljoin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstop</span><span class="p">,</span> 
+                                <span class="bp">self</span><span class="o">.</span><span class="n">rstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rstop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lfacet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rfacet</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">cachetag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">Uncacheable</span><span class="p">()</span> <span class="c"># TODO</span>
+    
+
+<span class="k">def</span> <span class="nf">iterintervaljoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="p">,</span> <span class="n">lstop</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="p">,</span> <span class="n">lfacet</span><span class="p">,</span> <span class="n">rfacet</span><span class="p">,</span>
+                     <span class="n">proximity</span><span class="p">):</span>
+
+    <span class="c"># create iterators and obtain fields</span>
+    <span class="n">lit</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+    <span class="n">lfields</span> <span class="o">=</span> <span class="n">lit</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">lstart</span> <span class="ow">in</span> <span class="n">lfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lstart</span> 
+    <span class="k">assert</span> <span class="n">lstop</span> <span class="ow">in</span> <span class="n">lfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lstop</span>
+    <span class="n">rit</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+    <span class="n">rfields</span> <span class="o">=</span> <span class="n">rit</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">rstart</span> <span class="ow">in</span> <span class="n">rfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rstart</span> 
+    <span class="k">assert</span> <span class="n">rstop</span> <span class="ow">in</span> <span class="n">rfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rstop</span>
+
+    <span class="c"># determine output fields</span>
+    <span class="n">outfields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lfields</span><span class="p">)</span>
+    <span class="n">outfields</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rfields</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outfields</span><span class="p">)</span>
+    
+    <span class="c"># create getters for start and stop positions</span>
+    <span class="n">getlstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">lfields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lstart</span><span class="p">))</span>
+    <span class="n">getlstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">lfields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lstop</span><span class="p">))</span>
+     
+    <span class="k">if</span> <span class="n">rfacet</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># build interval lookup for right table</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="n">intervallookup</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+        <span class="c"># main loop</span>
+        <span class="k">for</span> <span class="n">lrow</span> <span class="ow">in</span> <span class="n">lit</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">getlstart</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">getlstop</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">rrows</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">rrow</span> <span class="ow">in</span> <span class="n">rrows</span><span class="p">:</span>
+                <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rrow</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># build interval lookup for right table</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="n">facetintervallookup</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">rfacet</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">rstart</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">rstop</span><span class="p">,</span>
+                                     <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>   
+        <span class="c"># getter for facet key values in left table</span>
+        <span class="n">getlkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">asindices</span><span class="p">(</span><span class="n">lfields</span><span class="p">,</span> <span class="n">lfacet</span><span class="p">))</span>
+        <span class="c"># main loop</span>
+        <span class="k">for</span> <span class="n">lrow</span> <span class="ow">in</span> <span class="n">lit</span><span class="p">:</span>
+            <span class="n">lkey</span> <span class="o">=</span> <span class="n">getlkey</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">getlstart</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">getlstop</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rrows</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">lkey</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rrow</span> <span class="ow">in</span> <span class="n">rrows</span><span class="p">:</span>
+                    <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                    <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rrow</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+            
+            
+<div class="viewcode-block" id="intervalleftjoin"><a class="viewcode-back" href="../../interval.html#petlx.interval.intervalleftjoin">[docs]</a><span class="k">def</span> <span class="nf">intervalleftjoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span>
+                     <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">missing</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Like :func:`intervaljoin` but rows from the left table without a match</span>
+<span class="sd">    in the right table are also included. E.g.::</span>
+
+<span class="sd">        &gt;&gt;&gt; from petl import look</span>
+<span class="sd">        &gt;&gt;&gt; from petlx.interval import intervalleftjoin</span>
+<span class="sd">        &gt;&gt;&gt; look(left)</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; |</span>
+<span class="sd">        +==========+=========+=======+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 2     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 9       | 14    |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;orange&#39; | 19      | 140   |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 1     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 2     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 4       | 4     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        | &#39;apple&#39;  | 5       | 5     |</span>
+<span class="sd">        +----------+---------+-------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; look(right)</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+--------+---------+</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; result = intervalleftjoin(left, right, lstart=&#39;begin&#39;, lstop=&#39;end&#39;, rstart=&#39;start&#39;, rstop=&#39;stop&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; look(result)</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;fruit&#39;  | &#39;begin&#39; | &#39;end&#39; | &#39;type&#39;   | &#39;start&#39; | &#39;stop&#39; | &#39;value&#39; |</span>
+<span class="sd">        +==========+=========+=======+==========+=========+========+=========+</span>
+<span class="sd">        | &#39;apple&#39;  | 1       | 2     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 4     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;apple&#39;  | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     | &#39;apple&#39;  | 1       | 4      | &#39;foo&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     | &#39;apple&#39;  | 3       | 7      | &#39;bar&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 2       | 5     | &#39;orange&#39; | 4       | 9      | &#39;baz&#39;   |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+<span class="sd">        | &#39;orange&#39; | 9       | 14    | None     | None    | None   | None    |</span>
+<span class="sd">        +----------+---------+-------+----------+---------+--------+---------+</span>
+
+<span class="sd">    .. versionadded:: 0.2</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    
+    <span class="k">return</span> <span class="n">IntervalLeftJoinView</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="n">lstart</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="n">lstop</span><span class="p">,</span>
+                                <span class="n">rstart</span><span class="o">=</span><span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="n">rstop</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="n">lfacet</span><span class="p">,</span>
+                                <span class="n">rfacet</span><span class="o">=</span><span class="n">rfacet</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">,</span> <span class="n">missing</span><span class="o">=</span><span class="n">missing</span><span class="p">)</span>
+
+</div>
+<span class="k">class</span> <span class="nc">IntervalLeftJoinView</span><span class="p">(</span><span class="n">RowContainer</span><span class="p">):</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">lstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> 
+                 <span class="n">rstart</span><span class="o">=</span><span class="s">&#39;start&#39;</span><span class="p">,</span> <span class="n">rstop</span><span class="o">=</span><span class="s">&#39;stop&#39;</span><span class="p">,</span> <span class="n">lfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">rfacet</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                 <span class="n">missing</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstart</span> <span class="o">=</span> <span class="n">lstart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstop</span> <span class="o">=</span> <span class="n">lstop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lfacet</span> <span class="o">=</span> <span class="n">lfacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rstart</span> <span class="o">=</span> <span class="n">rstart</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rstop</span> <span class="o">=</span> <span class="n">rstop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rfacet</span> <span class="o">=</span> <span class="n">rfacet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">missing</span> <span class="o">=</span> <span class="n">missing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span> <span class="o">=</span> <span class="n">proximity</span>
+        <span class="c"># TODO guard niether or both facet fields None</span>
+
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">iterintervalleftjoin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">left</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">right</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstop</span><span class="p">,</span> 
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">rstart</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rstop</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lfacet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rfacet</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">proximity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">missing</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">cachetag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">Uncacheable</span><span class="p">()</span> <span class="c"># TODO</span>
+    
+
+<span class="k">def</span> <span class="nf">iterintervalleftjoin</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">lstart</span><span class="p">,</span> <span class="n">lstop</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="p">,</span> <span class="n">lfacet</span><span class="p">,</span> <span class="n">rfacet</span><span class="p">,</span>
+                         <span class="n">proximity</span><span class="p">,</span> <span class="n">missing</span><span class="p">):</span>
+
+    <span class="c"># create iterators and obtain fields</span>
+    <span class="n">lit</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">left</span><span class="p">)</span>
+    <span class="n">lfields</span> <span class="o">=</span> <span class="n">lit</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">lstart</span> <span class="ow">in</span> <span class="n">lfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lstart</span> 
+    <span class="k">assert</span> <span class="n">lstop</span> <span class="ow">in</span> <span class="n">lfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">lstop</span>
+    <span class="n">rit</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">right</span><span class="p">)</span>
+    <span class="n">rfields</span> <span class="o">=</span> <span class="n">rit</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="n">rstart</span> <span class="ow">in</span> <span class="n">rfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rstart</span> 
+    <span class="k">assert</span> <span class="n">rstop</span> <span class="ow">in</span> <span class="n">rfields</span><span class="p">,</span> <span class="s">&#39;field not found: </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">rstop</span>
+
+    <span class="c"># determine output fields</span>
+    <span class="n">outfields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lfields</span><span class="p">)</span>
+    <span class="n">outfields</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rfields</span><span class="p">)</span>
+    <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outfields</span><span class="p">)</span>
+    
+    <span class="c"># create getters for start and stop positions</span>
+    <span class="n">getlstart</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">lfields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lstart</span><span class="p">))</span>
+    <span class="n">getlstop</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="n">lfields</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">lstop</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">rfacet</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c"># build interval lookup for right table</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="n">intervallookup</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">rstart</span><span class="p">,</span> <span class="n">rstop</span><span class="p">,</span> <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>
+        <span class="c"># main loop</span>
+        <span class="k">for</span> <span class="n">lrow</span> <span class="ow">in</span> <span class="n">lit</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">getlstart</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">getlstop</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">rrows</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">rrows</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rrow</span> <span class="ow">in</span> <span class="n">rrows</span><span class="p">:</span>
+                    <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                    <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rrow</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">missing</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">rfields</span><span class="p">))</span>
+                <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># build interval lookup for right table</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="n">facetintervallookup</span><span class="p">(</span><span class="n">right</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">rfacet</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">rstart</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">rstop</span><span class="p">,</span>
+                                     <span class="n">proximity</span><span class="o">=</span><span class="n">proximity</span><span class="p">)</span>   
+        <span class="c"># getter for facet key values in left table</span>
+        <span class="n">getlkey</span> <span class="o">=</span> <span class="n">itemgetter</span><span class="p">(</span><span class="o">*</span><span class="n">asindices</span><span class="p">(</span><span class="n">lfields</span><span class="p">,</span> <span class="n">lfacet</span><span class="p">))</span>
+        <span class="c"># main loop</span>
+        <span class="k">for</span> <span class="n">lrow</span> <span class="ow">in</span> <span class="n">lit</span><span class="p">:</span>
+            <span class="n">lkey</span> <span class="o">=</span> <span class="n">getlkey</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">getlstart</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            <span class="n">stop</span> <span class="o">=</span> <span class="n">getlstop</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+            
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rrows</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">lkey</span><span class="p">][</span><span class="n">start</span><span class="p">:</span><span class="n">stop</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="n">rrows</span> <span class="o">=</span> <span class="bp">None</span>
+                
+            <span class="k">if</span> <span class="n">rrows</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rrow</span> <span class="ow">in</span> <span class="n">rrows</span><span class="p">:</span>
+                    <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                    <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">rrow</span><span class="p">)</span>
+                    <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outrow</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lrow</span><span class="p">)</span>
+                <span class="n">outrow</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">missing</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">rfields</span><span class="p">))</span>
+                <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outrow</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">petlx v0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alistair Miles.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
