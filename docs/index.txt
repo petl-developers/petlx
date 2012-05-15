@@ -30,8 +30,9 @@ Modules
    :maxdepth: 2
 
    xlsx
-   interval
    array
+   interval
+   gff3
 
 Indices and tables
 ------------------

@@ -697,7 +697,8 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             
             
 def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
-                     rstop='stop', lfacet=None, rfacet=None):
+                     rstop='stop', lfacet=None, rfacet=None, proximity=0,
+                     missing=None):
     """
     Like :func:`intervaljoin` but rows from the left table without a match
     in the right table are also included. E.g.::
@@ -772,14 +773,14 @@ def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
     
     return IntervalLeftJoinView(left, right, lstart=lstart, lstop=lstop,
                                 rstart=rstart, rstop=rstop, lfacet=lfacet,
-                                rfacet=rfacet)
+                                rfacet=rfacet, proximity=proximity, missing=missing)
 
 
 class IntervalLeftJoinView(RowContainer):
     
     def __init__(self, left, right, lstart='start', lstop='stop', 
                  rstart='start', rstop='stop', lfacet=None, rfacet=None,
-                 missing=None):
+                 missing=None, proximity=0):
         self.left = left
         self.lstart = lstart
         self.lstop = lstop
@@ -789,19 +790,20 @@ class IntervalLeftJoinView(RowContainer):
         self.rstop = rstop
         self.rfacet = rfacet
         self.missing = missing
+        self.proximity = proximity
         # TODO guard niether or both facet fields None
 
     def __iter__(self):
         return iterintervalleftjoin(self.left, self.right, self.lstart, self.lstop, 
                                     self.rstart, self.rstop, self.lfacet, self.rfacet,
-                                    self.missing)
+                                    self.proximity, self.missing)
         
     def cachetag(self):
         raise Uncacheable() # TODO
     
 
 def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
-                         missing):
+                         proximity, missing):
 
     # create iterators and obtain fields
     lit = iter(left)
@@ -824,7 +826,7 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
 
     if rfacet is None:
         # build interval lookup for right table
-        lookup = intervallookup(right, rstart, rstop)
+        lookup = intervallookup(right, rstart, rstop, proximity=proximity)
         # main loop
         for lrow in lit:
             start = getlstart(lrow)
@@ -842,7 +844,8 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
 
     else:
         # build interval lookup for right table
-        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop)   
+        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop,
+                                     proximity=proximity)   
         # getter for facet key values in left table
         getlkey = itemgetter(*asindices(lfields, lfacet))
         # main loop

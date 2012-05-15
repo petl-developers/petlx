@@ -1,0 +1,11 @@
+.. py:module:: petlx.gff3
+
+GFF3 Utilities
+==============
+
+.. autofunction:: fromgff3
+.. autofunction:: gff3lookup
+.. autofunction:: gff3join
+.. autofunction:: gff3leftjoin
+
+
