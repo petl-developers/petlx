@@ -6,8 +6,7 @@ Functions for working with intervals.
 from operator import itemgetter
 
 from petlx.util import UnsatisfiedDependency
-from petl.util import asindices, DuplicateKeyError, records, asdict
-from petl.base import RowContainer
+from petl.util import asindices, DuplicateKeyError, records, asdict, RowContainer
 from petl.io import Uncacheable
 
 

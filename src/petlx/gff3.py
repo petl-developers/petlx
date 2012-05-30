@@ -5,8 +5,7 @@ Utilities for working with GFF3 files.
 from petl.io import fromtsv
 from petl.transform import skipcomments, rowlenselect, convert, pushheader
 from urllib import unquote_plus
-from petl.util import HybridRow
-from petl.base import RowContainer
+from petl.util import HybridRow, RowContainer
 from petlx.interval import facetintervallookup, intervaljoin, intervalleftjoin
 
 
