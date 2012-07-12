@@ -32,7 +32,7 @@ def fromxlsx(filename, sheetname, checksumfun=None):
 
 class XLSXView(object):
     
-    def __init__(self, filename, sheetname, checksumfun=None):
+    def __init__(self, filename, sheetname='Sheet1', checksumfun=None):
         self.filename = filename
         self.sheetname = sheetname
         self.checksumfun = checksumfun
