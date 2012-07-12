@@ -18,11 +18,6 @@ at http://pytables.github.com/usersguide/installation.html or try apt-get instal
 python-tables.
 """
 
-try:
-    import tables
-except ImportError as e:
-    raise UnsatisfiedDependency(e, dep_message)
-
 
 def fromhdf5(source, where=None, name=None, condition=None, 
              condvars=None, start=None, stop=None, step=None):
@@ -100,6 +95,12 @@ class HDF5View(RowContainer):
     
     
 def _get_hdf5_table(source, where, name, mode='r'):
+
+    try:
+        import tables
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
     # allow for polymorphic args
     if isinstance(source, tables.Table):
         h5file = None
@@ -284,6 +285,11 @@ def tohdf5(table, source, where=None, name=None, create=False,
     
     if create:
 
+        try:
+            import tables
+        except ImportError as e:
+            raise UnsatisfiedDependency(e, dep_message)
+        
         if isinstance(source, basestring):
             # assume it's the name of an HDF5 file
             h5file = tables.openFile(source, mode='a') # don't replace the whole file!
