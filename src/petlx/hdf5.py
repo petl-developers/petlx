@@ -277,7 +277,7 @@ def tohdf5(table, source, where=None, name=None, create=False,
 
     See also :func:`appendhdf5`.
     
-    ..versionadded:: 0.3
+    .. versionadded:: 0.3
     
     """
 
@@ -339,7 +339,7 @@ def appendhdf5(table, source, where=None, name=None):
     """
     Like :func:`tohdf5` but don't truncate the table before loading.
     
-    ..versionadded:: 0.3
+    .. versionadded:: 0.3
     
     """
     

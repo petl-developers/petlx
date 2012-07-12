@@ -15,11 +15,6 @@ The package bx.intervals is required. Instructions for installation can be found
 at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try pip install bx-python.
 """
 
-try:
-    import bx.intervals
-except ImportError as e:
-    raise UnsatisfiedDependency(e, dep_message)
-
 
 def intervallookup(table, start='start', stop='stop', valuespec=None, 
                    proximity=0):
@@ -88,6 +83,10 @@ def intervallookup(table, start='start', stop='stop', valuespec=None,
     
     """
 
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
     tree = bx.intervals.intersection.IntervalTree()
     it = iter(table)
     fields = it.next()
@@ -108,6 +107,10 @@ def intervallookup(table, start='start', stop='stop', valuespec=None,
 class IntervalTreeWrapper(object):
     
     def __init__(self, tree=None, proximity=0):
+        try:
+            import bx.intervals
+        except ImportError as e:
+            raise UnsatisfiedDependency(e, dep_message)
         if tree is None:
             self.tree = bx.intervals.intersection.IntervalTree()
         else:
@@ -143,6 +146,10 @@ def intervallookupone(table, start='start', stop='stop', valuespec=None, proximi
     
     """
 
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
     tree = bx.intervals.intersection.IntervalTree()
     it = iter(table)
     fields = it.next()
@@ -163,6 +170,10 @@ def intervallookupone(table, start='start', stop='stop', valuespec=None, proximi
 class IntervalTreeReturnOneWrapper(object):
     
     def __init__(self, tree=None, proximity=0, strict=True):
+        try:
+            import bx.intervals
+        except ImportError as e:
+            raise UnsatisfiedDependency(e, dep_message)
         if tree is None:
             self.tree = bx.intervals.intersection.IntervalTree()
         else:
@@ -200,6 +211,10 @@ def intervalrecordlookup(table, start='start', stop='stop', proximity=0):
 
     """
 
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
     tree = bx.intervals.intersection.IntervalTree()
     for rec in records(table):
         if start in rec and stop in rec:
@@ -217,6 +232,10 @@ def intervalrecordlookupone(table, start='start', stop='stop', proximity=0,
 
     """
 
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
     tree = bx.intervals.intersection.IntervalTree()
     for rec in records(table):
         if start in rec and stop in rec:
@@ -225,7 +244,7 @@ def intervalrecordlookupone(table, start='start', stop='stop', proximity=0,
 
 
 def facetintervallookup(table, key, start='start', stop='stop', 
-                        valuespec=None, proximity=0):
+                           valuespec=None, proximity=0):
     """
     Construct a faceted interval lookup for the given table. E.g.::
 
