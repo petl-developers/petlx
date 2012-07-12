@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='petlx',
-    version='0.3',
+    version='0.2.1',
     author='Alistair Miles',
     author_email='alimanfoo@googlemail.com',
     package_dir={'': 'src'},
@@ -16,5 +16,5 @@ setup(
                  'Programming Language :: Python',
                  'Topic :: Software Development :: Libraries :: Python Modules'
                  ],
-    requires=['petl (>=0.9)']  
+    requires=['petl (>=0.10)']  
 )

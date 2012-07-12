@@ -2,6 +2,8 @@
 *.py~
 *.html~
 *.pyc
+*.csv
+*.h5
 docs/_build
 build
 MANIFEST

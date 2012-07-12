@@ -1,0 +1,172 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Arrays (numpy) &mdash; petlx v0.2.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.2.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="petlx v0.2.1 documentation" href="index.html" />
+    <link rel="next" title="Intervals (bx-python)" href="interval.html" />
+    <link rel="prev" title="Excel files (openpyxl)" href="xlsx.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interval.html" title="Intervals (bx-python)"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="xlsx.html" title="Excel files (openpyxl)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">petlx v0.2.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-petlx.array"></span><div class="section" id="arrays-numpy">
+<h1>Arrays (numpy)<a class="headerlink" href="#arrays-numpy" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="petlx.array.toarray">
+<tt class="descclassname">petlx.array.</tt><tt class="descname">toarray</tt><big>(</big><em>table</em>, <em>dtype=None</em>, <em>count=-1</em>, <em>sample=1000</em><big>)</big><a class="reference internal" href="_modules/petlx/array.html#toarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#petlx.array.toarray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience function to load data from the given <cite>table</cite> into a numpy 
+structured array. E.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petl</span> <span class="kn">import</span> <span class="n">look</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">petlx.array</span> <span class="kn">import</span> <span class="n">toarray</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">look</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+<span class="go">+-----------+-------+-------+</span>
+<span class="go">| &#39;foo&#39;     | &#39;bar&#39; | &#39;baz&#39; |</span>
+<span class="go">+===========+=======+=======+</span>
+<span class="go">| &#39;apples&#39;  | 1     | 2.5   |</span>
+<span class="go">+-----------+-------+-------+</span>
+<span class="go">| &#39;oranges&#39; | 3     | 4.4   |</span>
+<span class="go">+-----------+-------+-------+</span>
+<span class="go">| &#39;pears&#39;   | 7     | 0.1   |</span>
+<span class="go">+-----------+-------+-------+</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">toarray</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">array([(&#39;apples&#39;, 1, 2.5), (&#39;oranges&#39;, 3, 4.4), (&#39;pears&#39;, 7, 0.1)], </span>
+<span class="go">      dtype=[(&#39;foo&#39;, &#39;|S7&#39;), (&#39;bar&#39;, &#39;&lt;i8&#39;), (&#39;baz&#39;, &#39;&lt;f8&#39;)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">]</span>
+<span class="go">array([&#39;apples&#39;, &#39;oranges&#39;, &#39;pears&#39;], </span>
+<span class="go">      dtype=&#39;|S7&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;bar&#39;</span><span class="p">]</span>
+<span class="go">array([1, 3, 7])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;baz&#39;</span><span class="p">]</span>
+<span class="go">array([ 2.5,  4.4,  0.1])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;foo&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">&#39;apples&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;bar&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">[</span><span class="s">&#39;baz&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+<span class="go">0.10000000000000001</span>
+</pre></div>
+</div>
+<p>If no datatype is specified, <cite>sample</cite> rows will be examined to infer an
+appropriate datatype for each field.</p>
+<p>The datatype can be specified as a string, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">toarray</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s">&#39;a4, i2, f4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">array([(&#39;appl&#39;, 1, 2.5), (&#39;oran&#39;, 3, 4.400000095367432),</span>
+<span class="go">       (&#39;pear&#39;, 7, 0.10000000149011612)], </span>
+<span class="go">      dtype=[(&#39;foo&#39;, &#39;|S4&#39;), (&#39;bar&#39;, &#39;&lt;i2&#39;), (&#39;baz&#39;, &#39;&lt;f4&#39;)])</span>
+</pre></div>
+</div>
+<p>The datatype can also be partially specified, in which case datatypes will
+be inferred for other fields, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">toarray</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;foo&#39;</span><span class="p">:</span> <span class="s">&#39;a4&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span>
+<span class="go">array([(&#39;appl&#39;, 1, 2.5), (&#39;oran&#39;, 3, 4.4), (&#39;pear&#39;, 7, 0.1)], </span>
+<span class="go">      dtype=[(&#39;foo&#39;, &#39;|S4&#39;), (&#39;bar&#39;, &#39;&lt;i8&#39;), (&#39;baz&#39;, &#39;&lt;f8&#39;)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="xlsx.html"
+                        title="previous chapter">Excel files (openpyxl)</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="interval.html"
+                        title="next chapter">Intervals (bx-python)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/array.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="interval.html" title="Intervals (bx-python)"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="xlsx.html" title="Excel files (openpyxl)"
+             >previous</a> |</li>
+        <li><a href="index.html">petlx v0.2.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Alistair Miles.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
