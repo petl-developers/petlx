@@ -4,8 +4,7 @@ arrays.
 
 """
 
-from petl.util import columns, header, data
-from petl.transform import rowslice
+from petl.util import columns, iterpeek
 from petlx.util import UnsatisfiedDependency
 
 
@@ -18,6 +17,17 @@ try:
     import numpy as np
 except ImportError as e:
     raise UnsatisfiedDependency(e, dep_message)
+
+
+def guessdtype(table):
+    # get numpy to infer dtypes for each field individually
+    fields, table = iterpeek(table, 1)
+    cols = columns(table)
+    dtype = []
+    for f in fields:
+        a = np.array(cols[f]) # load into 1D array to get numpy to infer a dtype for the column
+        dtype.append((f, a.dtype))
+    return np.dtype(dtype)
 
 
 def toarray(table, dtype=None, count=-1, sample=1000):
@@ -77,15 +87,12 @@ def toarray(table, dtype=None, count=-1, sample=1000):
     
     """
     
-    fields = header(table)
+    it = iter(table)
+    peek, it = iterpeek(table, sample)
+    fields = it.next()
     
     if dtype is None:
-        # need to sample data and get numpy to infer dtypes for each field
-        cols = columns(rowslice(table, sample))
-        dtype = []
-        for f in fields:
-            a = np.array(cols[f]) # load into 1D array to get numpy to infer a dtype for the column
-            dtype.append((f, a.dtype))
+        dtype = guessdtype(peek)
        
     elif isinstance(dtype, basestring):
         # insert field names from source table
@@ -94,7 +101,7 @@ def toarray(table, dtype=None, count=-1, sample=1000):
         
     elif isinstance(dtype, dict) and ('names' not in dtype or 'formats' not in dtype):
         # allow for partial specification of dtype
-        cols = columns(rowslice(table, sample))
+        cols = columns(peek)
         newdtype = {'names': [], 'formats': []}
         for f in fields:
             newdtype['names'].append(f)
@@ -113,6 +120,6 @@ def toarray(table, dtype=None, count=-1, sample=1000):
     else:
         pass # leave dtype as-is
                      
-    it = (tuple(row) for row in data(table)) # numpy is fussy about having tuples, need to make sure
+    it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
     sa = np.fromiter(it, dtype=dtype, count=count)
     return sa

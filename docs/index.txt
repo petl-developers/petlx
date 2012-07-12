@@ -33,6 +33,7 @@ Modules
    array
    interval
    gff3
+   hdf5
 
 Indices and tables
 ------------------
