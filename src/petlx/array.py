@@ -13,13 +13,13 @@ The package numpy is required. Instructions for installation can be found
 at http://docs.scipy.org/doc/numpy/user/install.html or try apt-get install 
 python-numpy.
 """
-try:
-    import numpy as np
-except ImportError as e:
-    raise UnsatisfiedDependency(e, dep_message)
 
 
 def guessdtype(table):
+    try:
+        import numpy as np
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
     # get numpy to infer dtypes for each field individually
     fields, table = iterpeek(table, 1)
     cols = columns(table)
@@ -87,8 +87,13 @@ def toarray(table, dtype=None, count=-1, sample=1000):
     
     """
     
+    try:
+        import numpy as np
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
     it = iter(table)
-    peek, it = iterpeek(table, sample)
+    peek, it = iterpeek(it, sample)
     fields = it.next()
     
     if dtype is None:
