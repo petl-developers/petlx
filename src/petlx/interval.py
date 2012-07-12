@@ -21,7 +21,7 @@ def intervallookup(table, start='start', stop='stop', valuespec=None,
     """
     Construct an interval lookup for the given table. E.g.::
 
-        >>> from petlx import intervallookup    
+        >>> from petlx.interval import intervallookup    
         >>> table = [['start', 'stop', 'value'],
         ...          [1, 4, 'foo'],
         ...          [3, 7, 'bar'],
