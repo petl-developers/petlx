@@ -8,12 +8,15 @@ docs/gff3.txt
 docs/hdf5.txt
 docs/index.txt
 docs/interval.txt
+docs/tabix.txt
 docs/xlsx.txt
 src/petlx/__init__.py
 src/petlx/array.py
 src/petlx/gff3.py
 src/petlx/hdf5.py
+src/petlx/integration.py
 src/petlx/interval.py
+src/petlx/tabix.py
 src/petlx/testutils.py
 src/petlx/util.py
 src/petlx/xlsx.py
