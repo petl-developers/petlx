@@ -11,6 +11,7 @@ from petl.testutils import ieq
 
 from petlx.array import toarray, fromarray
 from petlx.testutils import assertclose
+from petl.fluent import etl
 
 
 def test_toarray_nodtype():
@@ -129,7 +130,6 @@ def test_toarray_lists():
     
     
 def test_fromarray():
-
     t = [('foo', 'bar', 'baz'),
          ('apples', 1, 2.5),
          ('oranges', 3, 4.4),
@@ -137,4 +137,15 @@ def test_fromarray():
     a = toarray(t)
     u = fromarray(a)
     ieq(t, u)
+    
+
+def test_fluent():
+    t = etl([('foo', 'bar', 'baz'),
+             ('apples', 1, 2.5),
+             ('oranges', 3, 4.4),
+             ('pears', 7, .1)])
+    a = t.toarray()
+    u = etl().fromarray(a)
+    ieq(t, u)
+    
     
