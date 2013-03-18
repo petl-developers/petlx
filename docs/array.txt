@@ -4,3 +4,5 @@ Arrays (numpy)
 ==============
 
 .. autofunction:: toarray
+
+.. autofunction:: fromarray

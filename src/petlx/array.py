@@ -133,6 +133,13 @@ def toarray(table, dtype=None, count=-1, sample=1000):
 
 
 def fromarray(a):
+    """
+    Extract rows from a numpy structured array.
+    
+    .. versionadded:: 0.4
+    
+    """
+    
     return ArrayContainer(a)
 
 
