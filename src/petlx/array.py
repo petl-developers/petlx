@@ -4,7 +4,7 @@ arrays.
 
 """
 
-from petl.util import columns, iterpeek
+from petl.util import columns, iterpeek, RowContainer
 from petlx.util import UnsatisfiedDependency
 
 
@@ -128,3 +128,19 @@ def toarray(table, dtype=None, count=-1, sample=1000):
     it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
     sa = np.fromiter(it, dtype=dtype, count=count)
     return sa
+
+
+def fromarray(a):
+    return ArrayContainer(a)
+
+
+class ArrayContainer(RowContainer):
+    
+    def __init__(self, a):
+        self.a = a
+        
+    def __iter__(self):
+        yield tuple(self.a.dtype.names)
+        for row in self.a:
+            yield tuple(row)
+
