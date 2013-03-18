@@ -7,6 +7,7 @@ from petl.transform import skipcomments, rowlenselect, convert, pushheader
 from urllib import unquote_plus
 from petl.util import HybridRow, RowContainer
 from petlx.interval import facetintervallookup, intervaljoin, intervalleftjoin
+import sys
 
 
 def gff3_parse_attributes(attributes_string):
@@ -109,4 +110,7 @@ def gff3leftjoin(table, features, seqid='seqid', start='start', end='end', proxi
                             rstart='start', rstop='end', rfacet='seqid', 
                             proximity=proximity)
 
+
+from .integration import integrate
+integrate(sys.modules[__name__])
     

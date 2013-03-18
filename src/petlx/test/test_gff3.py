@@ -9,7 +9,8 @@ from petl.util import header
 from petlx.gff3 import fromgff3, gff3lookup, gff3join, gff3_parse_attributes,\
     gff3leftjoin
 from petl.transform import selecteq
-from petl.testutils import iassertequal
+from petl.testutils import ieq
+from petl.fluent import etl
 
 
 plasmodb_gff3 = """
@@ -289,8 +290,8 @@ def test_gff3join():
     actual = gff3join(snps, genes, seqid='chr', start='pos', end='pos')
     expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
               ('apidb|MAL1', 56915, 'apidb|MAL1', 'ApiDB', 'gene', 56913, 57116, '.', '-', '.', gff3_parse_attributes("ID=apidb|PFA0035c;Name=PFA0035c;description=hypothetical+protein%2C+conserved+in+P.+falciparum;size=204;web_id=PFA0035c;locus_tag=PFA0035c;size=204;Alias=MAL1P4.06b")))
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
     
     
 def test_gff3leftjoin():    
@@ -305,8 +306,23 @@ def test_gff3leftjoin():
     expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
               ('apidb|MAL1', 56911, None, None, None, None, None, None, None, None, None),
               ('apidb|MAL1', 56915, 'apidb|MAL1', 'ApiDB', 'gene', 56913, 57116, '.', '-', '.', gff3_parse_attributes("ID=apidb|PFA0035c;Name=PFA0035c;description=hypothetical+protein%2C+conserved+in+P.+falciparum;size=204;web_id=PFA0035c;locus_tag=PFA0035c;size=204;Alias=MAL1P4.06b")))
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
+    
+def test_integration():
+    #apidb|MAL1    ApiDB    gene    56913    57116    .    -    .    ID=apidb|PFA0035c;Name=PFA0035c;description=hypothetical+protein%2C+conserved+in+P.+falciparum;size=204;web_id=PFA0035c;locus_tag=PFA0035c;size=204;Alias=MAL1P4.06b
+    snps = etl((('chr', 'pos'),
+                ('apidb|MAL1', 56911),
+                ('apidb|MAL1', 56915)))
+    features = etl().fromgff3(plasmodb_gff3_file.name)
+    genes = features.selecteq('type', 'gene')
+    actual = snps.gff3join(genes, seqid='chr', start='pos', end='pos')
+    expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
+              ('apidb|MAL1', 56915, 'apidb|MAL1', 'ApiDB', 'gene', 56913, 57116, '.', '-', '.', gff3_parse_attributes("ID=apidb|PFA0035c;Name=PFA0035c;description=hypothetical+protein%2C+conserved+in+P.+falciparum;size=204;web_id=PFA0035c;locus_tag=PFA0035c;size=204;Alias=MAL1P4.06b")))
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
     
     
         

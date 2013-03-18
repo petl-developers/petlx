@@ -139,7 +139,7 @@ def test_fromarray():
     ieq(t, u)
     
 
-def test_fluent():
+def test_integration():
     t = etl([('foo', 'bar', 'baz'),
              ('apples', 1, 2.5),
              ('oranges', 3, 4.4),

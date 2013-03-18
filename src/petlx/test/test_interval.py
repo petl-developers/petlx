@@ -3,8 +3,9 @@ Tests for the petlx.intervals module.
 
 """
 
-from petl.testutils import iassertequal, assertequal
+from petl.testutils import ieq, assertequal
 from petl.util import DuplicateKeyError
+from petl.fluent import etl
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
                         facetintervallookupone, intervaljoin, intervalleftjoin
@@ -21,39 +22,39 @@ def test_intervallookup():
     
     actual = lkp[1:2]
     expect = [(1, 4, 'foo')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2:4]
     expect = [(1, 4, 'foo'), (3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2:5]
     expect = [(1, 4, 'foo'), (3, 7, 'bar'), (4, 9, 'baz')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[9:14]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[19:140]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[1]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2]
     expect = [(1, 4, 'foo')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[4]
     expect = [(3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[5]
     expect = [(3, 7, 'bar'), (4, 9, 'baz')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     
 def test_intervallookup_2():
@@ -67,39 +68,39 @@ def test_intervallookup_2():
     
     actual = lkp[1:2]
     expect = ['foo']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2:4]
     expect = ['foo', 'bar', 'baz']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2:5]
     expect = ['foo', 'bar', 'baz']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[9:14]
     expect = ['baz']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[19:140]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[1]
     expect = ['foo']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[2]
     expect = ['foo']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[4]
     expect = ['foo', 'bar', 'baz']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[5]
     expect = ['bar', 'baz']
-    iassertequal(expect, actual)
+    ieq(expect, actual)
 
 
 def test_intervallookupone():
@@ -230,15 +231,15 @@ def test_intervallookupone_2():
     
     actual = lkp[4]
     expect = 'bar'
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[5]
     expect = 'bar'
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp[8]
     expect = 'baz'
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     
 def test_facetintervallookup():
@@ -252,47 +253,47 @@ def test_facetintervallookup():
 
     actual = lkp['apple'][1:2]
     expect = [('apple', 1, 4, 'foo')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][2:4]
     expect = [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][2:5]
     expect = [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['orange'][2:5]
     expect = [('orange', 4, 9, 'baz')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['orange'][9:14]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['orange'][19:140]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][1]
     expect = []
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][2]
     expect = [('apple', 1, 4, 'foo')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][4]
     expect = [('apple', 3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['apple'][5]
     expect = [('apple', 3, 7, 'bar')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
     
     actual = lkp['orange'][5]
     expect = [('orange', 4, 9, 'baz')]
-    iassertequal(expect, actual)
+    ieq(expect, actual)
 
 
 def test_facetintervallookupone():
@@ -419,8 +420,8 @@ def test_intervaljoin():
               (1, 8, 'j', 1, 4, 'foo'),
               (1, 8, 'j', 3, 7, 'bar'),
               (1, 8, 'j', 4, 9, 'baz'))
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
     
     
 def test_intervaljoin_proximity():
@@ -466,8 +467,8 @@ def test_intervaljoin_proximity():
               (1, 8, 'j', 1, 4, 'foo'),
               (1, 8, 'j', 3, 7, 'bar'),
               (1, 8, 'j', 4, 9, 'baz'))
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
     
     
 def test_intervalleftjoin():
@@ -509,8 +510,8 @@ def test_intervalleftjoin():
               (1, 8, 'j', 1, 4, 'foo'),
               (1, 8, 'j', 3, 7, 'bar'),
               (1, 8, 'j', 4, 9, 'baz'))
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
     
 
 def test_intervaljoin_faceted():    
@@ -549,8 +550,8 @@ def test_intervaljoin_faceted():
                           rstart='start', rstop='stop', lfacet='fruit',
                           rfacet='type')
 
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
 
                
 def test_intervalleftjoin_faceted():    
@@ -592,7 +593,45 @@ def test_intervalleftjoin_faceted():
                               rstart='start', rstop='stop', lfacet='fruit',
                               rfacet='type')
 
-    iassertequal(expect, actual)
-    iassertequal(expect, actual)
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
+    
+def test_integration():
+    
+    left = etl((('begin', 'end', 'quux'),
+                (1, 2, 'a'),
+                (2, 4, 'b'),
+                (2, 5, 'c'),
+                (9, 14, 'd'),
+                (9, 140, 'e'),
+                (1, 1, 'f'),
+                (2, 2, 'g'),
+                (4, 4, 'h'),
+                (5, 5, 'i'),
+                (1, 8, 'j')))
 
-                              
+    right = etl((('start', 'stop', 'value'),
+                 (1, 4, 'foo'),
+                 (3, 7, 'bar'),
+                 (4, 9, 'baz')))
+
+    actual = left.intervaljoin(right, 
+                               lstart='begin', lstop='end',
+                               rstart='start', rstop='stop')
+    expect = (('begin', 'end', 'quux', 'start', 'stop', 'value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    ieq(expect, actual)
+    ieq(expect, actual)

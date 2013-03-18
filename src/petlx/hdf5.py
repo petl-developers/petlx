@@ -3,6 +3,7 @@ TODO doc me
 
 """
 
+import sys
 
 from petl.io import Uncacheable
 from petl.util import RowContainer, data, iterpeek
@@ -367,3 +368,5 @@ def _insert(table, h5table):
     h5table.flush() 
     
     
+from .integration import integrate
+integrate(sys.modules[__name__])

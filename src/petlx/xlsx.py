@@ -55,5 +55,8 @@ class XLSXView(object):
         else:
             raise petl.io.Uncacheable
                 
-    
+
+import sys    
+from .integration import integrate
+integrate(sys.modules[__name__])
 

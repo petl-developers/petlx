@@ -10,6 +10,7 @@ from tables import openFile, IsDescription, Int32Col, Float32Col, \
                 StringCol
 from petl.testutils import ieq
 from petl.transform import sort
+from petl.fluent import etl
 
 
 from petlx.hdf5 import fromhdf5, fromhdf5sorted, tohdf5, appendhdf5
@@ -178,6 +179,31 @@ def test_appendhdf5():
     # append some more data
     appendhdf5(table1, 'test4.h5', '/testgroup', 'testtable')
     ieq(chain(table1, table1[1:]), fromhdf5('test4.h5', '/testgroup', 'testtable'))
+    
+    
+def test_integration():
+    
+    # set up a new hdf5 table to work with
+    h5file = openFile("test4.h5", mode="w", title="Test file")
+    h5file.createGroup('/', 'testgroup', 'Test Group')
+    class FooBar(IsDescription):
+        foo = Int32Col(pos=0)
+        bar = StringCol(6, pos=2)
+    h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5file.flush()
+    h5file.close()
+    
+    # load some initial data via tohdf5()
+    table1 = etl((('foo', 'bar'),
+                  (1, 'asdfgh'),
+                  (2, 'qwerty'),
+                  (3, 'zxcvbn')))
+    table1.tohdf5('test4.h5', '/testgroup', 'testtable')
+    ieq(table1, etl().fromhdf5('test4.h5', '/testgroup', 'testtable'))
+
+    # append some more data
+    table1.appendhdf5('test4.h5', '/testgroup', 'testtable')
+    ieq(chain(table1, table1[1:]), etl().fromhdf5('test4.h5', '/testgroup', 'testtable'))
     
     
     

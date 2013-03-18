@@ -864,3 +864,6 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
                 yield tuple(outrow)
 
 
+import sys
+from .integration import integrate
+integrate(sys.modules[__name__])
