@@ -1,4 +1,4 @@
-.. py:module:: petlx.array
+.. py:module:: petlx.vcf
 
 Variant Call Format Utilities (PyVCF)
 ===========================================
