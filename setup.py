@@ -26,5 +26,5 @@ setup(
                  'Programming Language :: Python',
                  'Topic :: Software Development :: Libraries :: Python Modules'
                  ],
-    requires=['petl (>=0.11.1)']  
+    requires=['petl (>=0.12)']  
 )
