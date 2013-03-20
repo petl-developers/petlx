@@ -39,6 +39,7 @@ Modules
    gff3
    hdf5
    tabix
+   ipython
 
 Indices and tables
 ------------------
