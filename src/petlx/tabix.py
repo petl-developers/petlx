@@ -53,7 +53,9 @@ class TabixContainer(RowContainer):
                 yield self.header
             else:
                 # assume last header line has fields
-                yield tuple(list(f.header)[-1].split('\t'))
+                h = list(f.header)
+                if len(h) > 0:
+                    yield tuple(h[-1].split('\t'))
             # data rows
             for row in f.fetch(reference=self.reference, start=self.start, end=self.end, region=self.region, parser=asTuple()):
                 yield tuple(row)
