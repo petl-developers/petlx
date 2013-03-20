@@ -1,0 +1,12 @@
+.. py:module:: petlx.array
+
+Variant Call Format Utilities (PyVCF)
+===========================================
+
+.. autofunction:: fromvcf
+
+.. autofunction:: unpackinfo
+
+.. autofunction:: meltsamples
+
+.. autofunction:: unpackcall
