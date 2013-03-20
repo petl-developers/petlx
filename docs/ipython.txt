@@ -4,3 +4,4 @@ iPython Utilities
 =================
 
 .. autofunction:: display
+.. autofunction:: displayall

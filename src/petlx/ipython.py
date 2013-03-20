@@ -40,6 +40,33 @@ def display(tbl, *sliceargs):
     display_html(buf.getvalue(), raw=True)
 
 
+def displayall(tbl):
+    """
+    Display *all rows* from a table inline within an iPython notebook. E.g.::
+    
+        In [0]: from petlx.ipython import displayall
+                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
+                displayall(tbl)
+                
+    Alternatively, using the fluent style::
+    
+        In [0]: from petl.interactive import etl
+                import petlx.ipython
+                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
+                etl(tbl).displayall()
+                
+    .. versionadded:: 0.5  
+        
+    """
+    try:
+        from IPython.core.display import display_html
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)        
+    buf = StringSource()
+    tohtml(tbl, buf)
+    display_html(buf.getvalue(), raw=True)
+
+
 import sys
 from .integration import integrate
 integrate(sys.modules[__name__])
