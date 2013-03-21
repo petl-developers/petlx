@@ -1,7 +1,21 @@
+nosetests
 # remove -SNAPSHOT from src/petlx/__init__.py and docs/conf.py
+sed -i -e 's/-SNAPSHOT//' src/petlx/__init__.py 
+sed -i -e 's/-SNAPSHOT//' docs/conf.py
+version=`grep VERSION src/petlx/__init__.py | sed -e "s/VERSION[ ]=[ ]'\(.*\)'/\1/"`
+echo $version
 # git commit and push
-# git tag and push 
-# python setup.py sdist upload
+git commit -a -m 'release $version'
+git push
+# git tag and push
+git tag -a v$version -m 'release $version'
+git push --tags
+# update pypi
+python setup.py sdist upload
 # increment version and add -SNAPSHOT in src/petlx/__init__.py and docs/conf.py
+emacs src/petlx/__init__.py
+emacs docs/conf.py
 # git commit and push
+git commit -a -m 'increment version'; git push
 # activate version at rtfd
+# notify

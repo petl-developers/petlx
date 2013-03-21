@@ -26,6 +26,16 @@ def display(tbl, *sliceargs):
                 etl(tbl).display()
                 
     .. versionadded:: 0.5  
+    
+    .. deprecated:: 0.6
+    
+    The :mod:`petl.interactive` module supports `_repr_html_` as of 0.13.1 so
+    this function is not necessary. E.g., the following should give an HTML 
+    rendering of the table inline within an iPython notebook::
+
+        In [0]: from petl.interactive import etl
+                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
+                etl(tbl)
         
     """
     try:
@@ -56,6 +66,16 @@ def displayall(tbl):
                 etl(tbl).displayall()
                 
     .. versionadded:: 0.5  
+
+    .. deprecated:: 0.6
+    
+    The :mod:`petl.interactive` module supports `_repr_html_` as of 0.13.1 so
+    this function is not necessary. E.g., the following should give an HTML 
+    rendering of the table inline within an iPython notebook::
+
+        In [0]: from petl.interactive import etl
+                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
+                etl(tbl)        
         
     """
     try:
