@@ -22,14 +22,15 @@ def guessdtype(table):
         import numpy as np
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
-    # get numpy to infer dtypes for each field individually
-    fields, table = iterpeek(table, 1)
-    cols = columns(table)
-    dtype = []
-    for f in fields:
-        a = np.array(cols[f]) # load into 1D array to get numpy to infer a dtype for the column
-        dtype.append((f, a.dtype))
-    return np.dtype(dtype)
+    else:
+        # get numpy to infer dtypes for each field individually
+        fields, table = iterpeek(table, 1)
+        cols = columns(table)
+        dtype = []
+        for f in fields:
+            a = np.array(cols[f]) # load into 1D array to get numpy to infer a dtype for the column
+            dtype.append((f, a.dtype))
+        return np.dtype(dtype)
 
 
 def toarray(table, dtype=None, count=-1, sample=1000):
@@ -93,43 +94,59 @@ def toarray(table, dtype=None, count=-1, sample=1000):
         import numpy as np
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
-
-    it = iter(table)
-    peek, it = iterpeek(it, sample)
-    fields = it.next()
-    
-    if dtype is None:
-        dtype = guessdtype(peek)
-       
-    elif isinstance(dtype, basestring):
-        # insert field names from source table
-        typestrings = [s.strip() for s in dtype.split(',')]
-        dtype = [(f, t) for f, t in zip(fields, typestrings)]
-        
-    elif isinstance(dtype, dict) and ('names' not in dtype or 'formats' not in dtype):
-        # allow for partial specification of dtype
-        cols = columns(peek)
-        newdtype = {'names': [], 'formats': []}
-        for f in fields:
-            newdtype['names'].append(f)
-            if f in dtype and isinstance(dtype[f], tuple):
-                # assume fully specified
-                newdtype['formats'].append(dtype[f][0])
-            elif f not in dtype:
-                # not specified at all
-                a = np.array(cols[f])
-                newdtype['formats'].append(a.dtype)
-            else:
-                # assume directly specified, just need to add offset
-                newdtype['formats'].append(dtype[f])
-        dtype = newdtype
-        
     else:
-        pass # leave dtype as-is
-                     
-    it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
-    sa = np.fromiter(it, dtype=dtype, count=count)
-    return sa
+
+        it = iter(table)
+        peek, it = iterpeek(it, sample)
+        fields = it.next()
+        
+        if dtype is None:
+            dtype = guessdtype(peek)
+           
+        elif isinstance(dtype, basestring):
+            # insert field names from source table
+            typestrings = [s.strip() for s in dtype.split(',')]
+            dtype = [(f, t) for f, t in zip(fields, typestrings)]
+            
+        elif isinstance(dtype, dict) and ('names' not in dtype or 'formats' not in dtype):
+            # allow for partial specification of dtype
+            cols = columns(peek)
+            newdtype = {'names': [], 'formats': []}
+            for f in fields:
+                newdtype['names'].append(f)
+                if f in dtype and isinstance(dtype[f], tuple):
+                    # assume fully specified
+                    newdtype['formats'].append(dtype[f][0])
+                elif f not in dtype:
+                    # not specified at all
+                    a = np.array(cols[f])
+                    newdtype['formats'].append(a.dtype)
+                else:
+                    # assume directly specified, just need to add offset
+                    newdtype['formats'].append(dtype[f])
+            dtype = newdtype
+            
+        else:
+            pass # leave dtype as-is
+                         
+        it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
+        sa = np.fromiter(it, dtype=dtype, count=count)
+        return sa
+
+
+def torecarray(*args, **kwargs):
+    """
+    Convenient shorthand for toarray(..).view(np.recarray).
+    
+    .. versionadded:: 0.5.1
+    
+    """
+    try:
+        import numpy as np
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+    else:
+        return torecarray(*args, **kwargs).view(np.recarray)
 
 
 def fromarray(a):
