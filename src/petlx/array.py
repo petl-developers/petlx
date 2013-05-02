@@ -136,7 +136,7 @@ def toarray(table, dtype=None, count=-1, sample=1000):
 
 def torecarray(*args, **kwargs):
     """
-    Convenient shorthand for toarray(..).view(np.recarray).
+    Convenient shorthand for ``toarray(...).view(np.recarray)``.
     
     .. versionadded:: 0.5.1
     
@@ -146,7 +146,7 @@ def torecarray(*args, **kwargs):
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
     else:
-        return torecarray(*args, **kwargs).view(np.recarray)
+        return toarray(*args, **kwargs).view(np.recarray)
 
 
 def fromarray(a):

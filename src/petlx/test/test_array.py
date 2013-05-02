@@ -9,7 +9,7 @@ import numpy as np
 from nose.tools import eq_
 from petl.testutils import ieq
 
-from petlx.array import toarray, fromarray
+from petlx.array import toarray, fromarray, torecarray
 from petlx.testutils import assertclose
 from petl.fluent import etl
 
@@ -35,6 +35,29 @@ def test_toarray_nodtype():
     assertclose(2.5, a['baz'][0])
     assertclose(4.4, a['baz'][1])
     assertclose(.1, a['baz'][2])
+
+
+def test_torecarray():
+    
+    t = [('foo', 'bar', 'baz'),
+         ('apples', 1, 2.5),
+         ('oranges', 3, 4.4),
+         ('pears', 7, .1)]
+    
+    a = torecarray(t)
+    assert isinstance(a, np.ndarray)
+    assert isinstance(a.foo, np.ndarray)
+    assert isinstance(a.bar, np.ndarray)
+    assert isinstance(a.baz, np.ndarray)
+    eq_('apples', a.foo[0])
+    eq_('oranges', a.foo[1])
+    eq_('pears', a.foo[2])
+    eq_(1, a.bar[0])
+    eq_(3, a.bar[1])
+    eq_(7, a.bar[2])
+    assertclose(2.5, a.baz[0])
+    assertclose(4.4, a.baz[1])
+    assertclose(.1, a.baz[2])
 
 
 def test_toarray_stringdtype():
