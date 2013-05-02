@@ -3,8 +3,8 @@
 petlx - Optional Extensions to the petl Package
 ===============================================
 
-:mod:`petlx` is a collection of extensions to :mod:`petl`, a Python
-module for extracting, transforming and loading tables of data.
+:mod:`petlx` is a collection of extensions to `petl <http://petl.readthedocs.org/>`_, 
+a Python package for extracting, transforming and loading tables of data.
 
 - Documentation: http://petlx.readthedocs.org/
 - Source Code: https://github.com/alimanfoo/petlx
