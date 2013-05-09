@@ -17,6 +17,7 @@ or try ``pip install bx-python``.
 .. autofunction:: facetintervalrecordlookupone
 .. autofunction:: intervaljoin
 .. autofunction:: intervalleftjoin
+.. autofunction:: intervaljoinvalues
 
 
 

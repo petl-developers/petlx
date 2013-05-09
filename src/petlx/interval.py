@@ -7,6 +7,7 @@ from operator import itemgetter
 
 from petlx.util import UnsatisfiedDependency
 from petl.util import asindices, DuplicateKeyError, records, asdict, RowContainer
+from petl.transform import addfield
 from petl.io import Uncacheable
 
 
@@ -603,6 +604,7 @@ def intervaljoin(left, right, lstart='start', lstop='stop', rstart='start',
     
     """
     
+    assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     return IntervalJoinView(left, right, lstart=lstart, lstop=lstop,
                             rstart=rstart, rstop=rstop, lfacet=lfacet,
                             rfacet=rfacet, proximity=proximity)
@@ -641,10 +643,14 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
     lfields = lit.next()
     assert lstart in lfields, 'field not found: %s' % lstart 
     assert lstop in lfields, 'field not found: %s' % lstop
+    if lfacet is not None:
+        assert lfacet in lfields, 'field not found: %s' % lfacet
     rit = iter(right)
     rfields = rit.next()
     assert rstart in rfields, 'field not found: %s' % rstart 
     assert rstop in rfields, 'field not found: %s' % rstop
+    if rfacet is not None:
+        assert rfacet in rfields, 'field not found: %s' % rfacet
 
     # determine output fields
     outfields = list(lfields)
@@ -694,7 +700,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             
 def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
                      rstop='stop', lfacet=None, rfacet=None, proximity=0,
-                     missing=None):
+                     missing=None, lookup=None):
     """
     Like :func:`intervaljoin` but rows from the left table without a match
     in the right table are also included. E.g.::
@@ -767,6 +773,7 @@ def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
     
     """
     
+    assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     return IntervalLeftJoinView(left, right, lstart=lstart, lstop=lstop,
                                 rstart=rstart, rstop=rstop, lfacet=lfacet,
                                 rfacet=rfacet, proximity=proximity, missing=missing)
@@ -787,7 +794,6 @@ class IntervalLeftJoinView(RowContainer):
         self.rfacet = rfacet
         self.missing = missing
         self.proximity = proximity
-        # TODO guard niether or both facet fields None
 
     def __iter__(self):
         return iterintervalleftjoin(self.left, self.right, self.lstart, self.lstop, 
@@ -806,10 +812,14 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
     lfields = lit.next()
     assert lstart in lfields, 'field not found: %s' % lstart 
     assert lstop in lfields, 'field not found: %s' % lstop
+    if lfacet is not None:
+        assert lfacet in lfields, 'field not found: %s' % lfacet
     rit = iter(right)
     rfields = rit.next()
     assert rstart in rfields, 'field not found: %s' % rstart 
     assert rstop in rfields, 'field not found: %s' % rstop
+    if rfacet is not None:
+        assert rfacet in rfields, 'field not found: %s' % rfacet
 
     # determine output fields
     outfields = list(lfields)
@@ -867,6 +877,27 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
                 outrow.extend([missing] * len(rfields))
                 yield tuple(outrow)
 
+
+def intervaljoinvalues(left, right, lstart='start', lstop='stop', rstart='start',
+                       rstop='stop', lfacet=None, rfacet=None, proximity=0,
+                       valuespec=None, valuesfield='values'):
+    """
+    Convenience function to join the left table with values from a specific 
+    field in the right hand table.
+    
+    .. versionadded:: 0.5.3
+    
+    """
+    
+    assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
+    if lfacet is None:
+        lkp = intervallookup(right, start=rstart, stop=rstop, valuespec=valuespec, proximity=proximity)
+        f = lambda row: lkp[row[lstart]:row[lstop]]
+    else:
+        lkp = facetintervallookup(right, rfacet, start=rstart, stop=rstop, valuespec=valuespec, proximity=proximity)
+        f = lambda row: lkp[row[lfacet]][row[lstart]:row[lstop]]
+    return addfield(left, valuesfield, f)
+        
 
 import sys
 from .integration import integrate

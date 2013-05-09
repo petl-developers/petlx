@@ -8,7 +8,8 @@ from petl.util import DuplicateKeyError
 from petl.fluent import etl
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
-                        facetintervallookupone, intervaljoin, intervalleftjoin
+                        facetintervallookupone, intervaljoin, intervalleftjoin, \
+                        intervaljoinvalues
 
 
 def test_intervallookup():
@@ -616,7 +617,48 @@ def test_intervalleftjoin_faceted_rkeymissing():
 
     ieq(expect, actual)
     ieq(expect, actual)
+
+
+def test_intervaljoinvalues_faceted():    
+
+    left = (('fruit', 'begin', 'end'),
+            ('apple', 1, 2),
+            ('apple', 2, 4),
+            ('apple', 2, 5),
+            ('orange', 2, 5),
+            ('orange', 9, 14),
+            ('orange', 19, 140),
+            ('apple', 1, 1),
+            ('apple', 2, 2),
+            ('apple', 4, 4),
+            ('apple', 5, 5),
+            ('orange', 5, 5))
+
+    right = (('type', 'start', 'stop', 'value'),
+             ('apple', 1, 4, 'foo'),
+             ('apple', 3, 7, 'bar'),
+             ('orange', 4, 9, 'baz'))
     
+    expect = (('fruit', 'begin', 'end', 'values'),
+              ('apple', 1, 2, ['foo']),
+              ('apple', 2, 4, ['foo', 'bar']),
+              ('apple', 2, 5, ['foo', 'bar']),
+              ('orange', 2, 5, ['baz']),
+              ('orange', 9, 14, []),
+              ('orange', 19, 140, []),
+              ('apple', 1, 1, []),
+              ('apple', 2, 2, ['foo']),
+              ('apple', 4, 4, ['bar']),
+              ('apple', 5, 5, ['bar']),
+              ('orange', 5, 5, ['baz']))
+
+    actual = intervaljoinvalues(left, right, lstart='begin', lstop='end', 
+                                rstart='start', rstop='stop', lfacet='fruit',
+                                rfacet='type', valuespec='value')
+
+    ieq(expect, actual)
+    ieq(expect, actual)
+        
     
 def test_integration():
     
