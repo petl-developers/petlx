@@ -681,6 +681,8 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             stop = getlstop(lrow)
             try:
                 rrows = lookup[lkey][start:stop]
+            except KeyError:
+                pass
             except AttributeError:
                 pass
             else:
@@ -850,6 +852,8 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
             
             try:
                 rrows = lookup[lkey][start:stop]
+            except KeyError:
+                rrows = None
             except AttributeError:
                 rrows = None
                 

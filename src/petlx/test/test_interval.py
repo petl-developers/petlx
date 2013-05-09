@@ -597,6 +597,27 @@ def test_intervalleftjoin_faceted():
     ieq(expect, actual)
     
     
+def test_intervalleftjoin_faceted_rkeymissing():    
+
+    left = (('fruit', 'begin', 'end'),
+            ('apple', 1, 2),
+            ('orange', 5, 5))
+
+    right = (('type', 'start', 'stop', 'value'),
+             ('apple', 1, 4, 'foo'))
+        
+    expect = (('fruit', 'begin', 'end', 'type', 'start', 'stop', 'value'),
+              ('apple', 1, 2, 'apple', 1, 4, 'foo'),
+              ('orange', 5, 5, None, None, None, None))
+
+    actual = intervalleftjoin(left, right, lstart='begin', lstop='end', 
+                              rstart='start', rstop='stop', lfacet='fruit',
+                              rfacet='type')
+
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
+    
 def test_integration():
     
     left = etl((('begin', 'end', 'quux'),
