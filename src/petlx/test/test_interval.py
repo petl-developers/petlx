@@ -4,12 +4,12 @@ Tests for the petlx.intervals module.
 """
 
 from petl.testutils import ieq, assertequal
-from petl.util import DuplicateKeyError
+from petl.util import DuplicateKeyError, look
 from petl.fluent import etl
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
                         facetintervallookupone, intervaljoin, intervalleftjoin, \
-                        intervaljoinvalues
+                        intervaljoinvalues, intervalsubtract
 
 
 def test_intervallookup():
@@ -658,6 +658,84 @@ def test_intervaljoinvalues_faceted():
 
     ieq(expect, actual)
     ieq(expect, actual)
+    
+    
+def test_subtract_1():
+    
+    left = (('begin', 'end', 'label'),
+            (1, 6, 'apple'),
+            (3, 6, 'orange'),
+            (5, 9, 'banana'))
+    
+    right = (('start', 'stop', 'foo'),
+             (3, 4, True))
+    
+    expect = (('begin', 'end', 'label'),
+              (1, 3, 'apple'),
+              (4, 6, 'apple'),
+              (4, 6, 'orange'),
+              (5, 9, 'banana'))
+    
+    actual = intervalsubtract(left, right, 
+                              lstart='begin', lstop='end', 
+                              rstart='start', rstop='stop')
+    print look(actual)
+
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
+        
+def test_subtract_2():
+    
+    left = (('begin', 'end', 'label'),
+            (1, 6, 'apple'),
+            (3, 6, 'orange'),
+            (5, 9, 'banana'))
+    
+    right = (('start', 'stop', 'foo'),
+             (3, 4, True),
+             (5, 6, True))
+    
+    expect = (('begin', 'end', 'label'),
+              (1, 3, 'apple'),
+              (4, 5, 'apple'),
+              (4, 5, 'orange'),
+              (6, 9, 'banana'))
+    
+    actual = intervalsubtract(left, right, 
+                              lstart='begin', lstop='end', 
+                              rstart='start', rstop='stop')
+    print look(actual)
+
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
+        
+def test_subtract_faceted():
+    
+    left = (('region', 'begin', 'end', 'label'),
+            ('north', 1, 6, 'apple'),
+            ('south', 3, 6, 'orange'),
+            ('west', 5, 9, 'banana'))
+    
+    right = (('place', 'start', 'stop', 'foo'),
+             ('south', 3, 4, True),
+             ('north', 5, 6, True))
+    
+    expect = (('region', 'begin', 'end', 'label'),
+              ('north', 1, 5, 'apple'),
+              ('south', 4, 6, 'orange'),
+              ('west', 5, 9, 'banana'))
+    
+    actual = intervalsubtract(left, right,
+                              lfacet='region', rfacet='place', 
+                              lstart='begin', lstop='end', 
+                              rstart='start', rstop='stop')
+    print look(actual)
+
+    ieq(expect, actual)
+    ieq(expect, actual)
+    
         
     
 def test_integration():

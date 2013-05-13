@@ -700,7 +700,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             
 def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
                      rstop='stop', lfacet=None, rfacet=None, proximity=0,
-                     missing=None, lookup=None):
+                     missing=None):
     """
     Like :func:`intervaljoin` but rows from the left table without a match
     in the right table are also included. E.g.::
@@ -898,6 +898,157 @@ def intervaljoinvalues(left, right, lstart='start', lstop='stop', rstart='start'
         f = lambda row: lkp[row[lfacet]][row[lstart]:row[lstop]]
     return addfield(left, valuesfield, f)
         
+        
+def intervalsubtract(left, right, lstart='start', lstop='stop', rstart='start',
+                     rstop='stop', lfacet=None, rfacet=None, proximity=0,
+                     missing=None):
+    """
+    Subtract intervals in the right hand table from intervals in the left hand 
+    table.
+    
+    .. versionadded:: 0.5.4
+    
+    """
+
+    assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
+    return IntervalSubtractView(left, right, lstart=lstart, lstop=lstop,
+                                rstart=rstart, rstop=rstop, lfacet=lfacet,
+                                rfacet=rfacet, proximity=proximity, missing=missing)
+
+
+class IntervalSubtractView(RowContainer):
+    
+    def __init__(self, left, right, lstart='start', lstop='stop', 
+                 rstart='start', rstop='stop', lfacet=None, rfacet=None,
+                 missing=None, proximity=0):
+        self.left = left
+        self.lstart = lstart
+        self.lstop = lstop
+        self.lfacet = lfacet
+        self.right = right
+        self.rstart = rstart
+        self.rstop = rstop
+        self.rfacet = rfacet
+        self.missing = missing
+        self.proximity = proximity
+
+    def __iter__(self):
+        return iterintervalsubtract(self.left, self.right, self.lstart, self.lstop, 
+                                        self.rstart, self.rstop, self.lfacet, self.rfacet,
+                                        self.proximity, self.missing)
+        
+    def cachetag(self):
+        raise Uncacheable() # TODO
+    
+
+def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
+                         proximity, missing):
+
+    # create iterators and obtain fields
+    lit = iter(left)
+    lfields = lit.next()
+    assert lstart in lfields, 'field not found: %s' % lstart 
+    assert lstop in lfields, 'field not found: %s' % lstop
+    if lfacet is not None:
+        assert lfacet in lfields, 'field not found: %s' % lfacet
+    rit = iter(right)
+    rfields = rit.next()
+    assert rstart in rfields, 'field not found: %s' % rstart 
+    assert rstop in rfields, 'field not found: %s' % rstop
+    if rfacet is not None:
+        assert rfacet in rfields, 'field not found: %s' % rfacet
+
+    # determine output fields
+    outfields = list(lfields)
+#    outfields.extend(rfields)
+    yield tuple(outfields)
+    
+    # create getters for start and stop positions
+    lstartidx = lfields.index(lstart)
+    lstopidx = lfields.index(lstop)
+    getlcoords = itemgetter(lstartidx, lstopidx)
+    getrcoords = itemgetter(rfields.index(rstart), rfields.index(rstop))
+
+    if rfacet is None:
+        # build interval lookup for right table
+        lookup = intervallookup(right, rstart, rstop, proximity=proximity)
+        # main loop
+        for lrow in lit:
+            start, stop = getlcoords(lrow)
+            rrows = lookup[start:stop]
+            if not rrows:
+                yield tuple(lrow)
+            else:
+                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0)) # sort by start
+                for x, y in _subtract(start, stop, rivs):
+                    out = list(lrow)
+                    out[lstartidx] = x
+                    out[lstopidx] = y
+                    yield tuple(out)
+                
+    else:
+        # build interval lookup for right table
+        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop,
+                                     proximity=proximity)   
+        # getter for facet key values in left table
+        getlkey = itemgetter(*asindices(lfields, lfacet))
+        # main loop
+        for lrow in lit:
+            lkey = getlkey(lrow)
+            start, stop = getlcoords(lrow)
+            try:
+                rrows = lookup[lkey][start:stop]
+            except KeyError:
+                rrows = None
+            except AttributeError:
+                rrows = None
+            if not rrows:
+                yield tuple(lrow)
+            else:
+                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0)) # sort by start
+                for x, y in _subtract(start, stop, rivs):
+                    out = list(lrow)
+                    out[lstartidx] = x
+                    out[lstopidx] = y
+                    yield tuple(out)
+
+
+from collections import namedtuple
+_Interval = namedtuple('Interval', 'start stop')
+
+
+def _collapse(intervals):
+    """
+    Collapse an iterable of intervals sorted by start coord.
+    
+    """
+    span = None
+    for start, stop in intervals:
+        if span is None:
+            span = _Interval(start, stop)
+        elif start <= span.stop and stop > span.stop:
+            span = _Interval(span.start, stop)
+        elif start > span.stop:
+            yield span
+            span = _Interval(start, stop)
+    if span is not None:
+        yield span
+    
+    
+def _subtract(start, stop, intervals):
+    """
+    Subtract intervals from a spanning interval.
+    
+    """
+    remainder_start = start
+    sub_start = sub_stop = None
+    for sub_start, sub_stop in _collapse(intervals):
+        if remainder_start < sub_start:
+            yield _Interval(remainder_start, sub_start)
+        remainder_start = sub_stop
+    if sub_stop is not None and sub_stop < stop:
+        yield _Interval(sub_stop, stop)
+    
 
 import sys
 from .integration import integrate
