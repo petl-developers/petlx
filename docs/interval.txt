@@ -19,6 +19,7 @@ or try ``pip install bx-python``.
 .. autofunction:: intervalleftjoin
 .. autofunction:: intervaljoinvalues
 .. autofunction:: intervalsubtract
+.. autofunction:: collapsedintervals
 
 
 

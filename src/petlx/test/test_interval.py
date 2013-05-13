@@ -9,7 +9,7 @@ from petl.fluent import etl
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
                         facetintervallookupone, intervaljoin, intervalleftjoin, \
-                        intervaljoinvalues, intervalsubtract
+                        intervaljoinvalues, intervalsubtract, collapsedintervals, _Interval
 
 
 def test_intervallookup():
@@ -736,7 +736,31 @@ def test_subtract_faceted():
     ieq(expect, actual)
     ieq(expect, actual)
     
-        
+
+def test_collapse():
+    
+    # no facet key
+    tbl = (('begin', 'end', 'label'),
+            (1, 6, 'apple'),
+            (3, 6, 'orange'),
+            (5, 9, 'banana'),
+            (12, 14, 'banana'),
+            (13, 17, 'kiwi'))
+    expect = [_Interval(1, 9), _Interval(12, 17)]
+    actual = collapsedintervals(tbl, start='begin', stop='end')
+    ieq(expect, actual)    
+            
+    # faceted 
+    tbl = (('region', 'begin', 'end', 'label'),
+            ('north', 1, 6, 'apple'),
+            ('north', 3, 6, 'orange'),
+            ('north', 5, 9, 'banana'),
+            ('south', 12, 14, 'banana'),
+            ('south', 13, 17, 'kiwi'))
+    expect = [('north', 1, 9), ('south', 12, 17)]
+    actual = collapsedintervals(tbl, start='begin', stop='end', facet='region')
+    ieq(expect, actual)    
+            
     
 def test_integration():
     

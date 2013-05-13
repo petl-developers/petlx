@@ -6,8 +6,9 @@ Functions for working with intervals.
 from operator import itemgetter
 
 from petlx.util import UnsatisfiedDependency
-from petl.util import asindices, DuplicateKeyError, records, asdict, RowContainer
-from petl.transform import addfield
+from petl.util import asindices, DuplicateKeyError, records, asdict, \
+    RowContainer, values, rowgroupby
+from petl.transform import addfield, sort
 from petl.io import Uncacheable
 
 
@@ -1015,6 +1016,29 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
 
 from collections import namedtuple
 _Interval = namedtuple('Interval', 'start stop')
+
+
+def collapsedintervals(tbl, start='start', stop='stop', facet=None):
+    """
+    Utility function to collapse intervals in a table. 
+    
+    If no facet key is given, returns an iterator over `(start, stop)` tuples.
+    
+    If facet key is given, returns an iterator over `(key, start, stop)` tuples.  
+    
+    .. versionadded:: 0.5.5
+    
+    """
+    
+    if facet is None:
+        tbl = sort(tbl, key=start)
+        for iv in _collapse(values(tbl, (start, stop))):
+            yield iv
+    else:
+        tbl = sort(tbl, key=(facet, start))
+        for k, g in rowgroupby(tbl, key=facet, value=(start, stop)):
+            for iv in _collapse(g):
+                yield (k,) + iv
 
 
 def _collapse(intervals):
