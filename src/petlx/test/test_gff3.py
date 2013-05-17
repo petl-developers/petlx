@@ -38,7 +38,7 @@ plasmodb_gff3 = """
 ##sequence-region	apidb|API_IRAB	1	34242
 ##sequence-region	apidb|NC_002375	1	5967
 apidb|MAL1	ApiDB	supercontig	1	643292	.	+	.	ID=apidb|MAL1;Name=MAL1;description=MAL1;size=643292;web_id=MAL1;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL1,GenBank:NC_004325,taxon:36329
-apidb|MAL2	ApiDB	supercontig	1	947102	.	+	.	ID=apidb|MAL2;Name=MAL2;description=MAL2;size=947102;web_id=MAL2;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL2,GenBank:NC_000910,taxon:36329
+apidb|MAL2	ApiDB	supercontig	1	947102	.	+	.	ID=apidb|MAL2;Name=MAL2;description=MAL2;size=947102;web_id=MAL2;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL2,GenBank:NC_000910,taxon:36329;
 apidb|MAL3	ApiDB	supercontig	1	1060087	.	+	.	ID=apidb|MAL3;Name=MAL3;description=MAL3;size=1060087;web_id=MAL3;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL3,GenBank:NC_000521,taxon:36329
 apidb|MAL4	ApiDB	supercontig	1	1204112	.	+	.	ID=apidb|MAL4;Name=MAL4;description=MAL4;size=1204112;web_id=MAL4;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL4,GenBank:NC_004318,taxon:36329
 apidb|MAL5	ApiDB	supercontig	1	1343552	.	+	.	ID=apidb|MAL5;Name=MAL5;description=MAL5;size=1343552;web_id=MAL5;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL5,GenBank:NC_004326,taxon:36329
@@ -258,6 +258,25 @@ def test_fromgff3():
     eq_('apidb|MAL1', row['attributes']['ID']) 
     eq_('MAL1', row['attributes']['Name'])
     eq_('Plasmodium falciparum', row['attributes']['organism_name'])
+    
+    
+def test_fromgff3_trailing_semicolon():
+    
+    features = fromgff3(plasmodb_gff3_file.name)
+    
+    #apidb|MAL2    ApiDB    supercontig    1    947102    .    +    .    ID=apidb|MAL2;Name=MAL2;description=MAL2;size=947102;web_id=MAL2;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL2,GenBank:NC_000910,taxon:36329;
+    row = list(features)[2]
+    eq_('apidb|MAL2', row[0])
+    eq_('ApiDB', row[1])
+    eq_('supercontig', row[2])
+    eq_(1, row[3])
+    eq_(947102, row[4])
+    eq_('.', row[5])
+    eq_('+', row[6])
+    eq_('.', row[7])
+    eq_('apidb|MAL2', row[8]['ID']) 
+    eq_('MAL2', row[8]['Name'])
+    eq_('Plasmodium falciparum', row[8]['organism_name'])
     
     
 def test_gff3lookup():

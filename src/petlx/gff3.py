@@ -2,6 +2,8 @@
 Utilities for working with GFF3 files.
 
 """
+
+
 from petl.io import fromtsv
 from petl.transform import skipcomments, rowlenselect, convert, pushheader
 from urllib import unquote_plus
@@ -22,8 +24,12 @@ def gff3_parse_attributes(attributes_string):
     attributes = dict()
     fields = attributes_string.split(';')
     for f in fields:
-        key, value = f.split('=')
-        attributes[unquote_plus(key).strip()] = unquote_plus(value.strip()) 
+        if '=' in f:
+            key, value = f.split('=')
+            attributes[unquote_plus(key).strip()] = unquote_plus(value.strip())
+        elif len(f) > 0:
+            # not strictly kosher
+            attributes[unquote_plus(f).strip()] = True            
     return attributes
 
 
