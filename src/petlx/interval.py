@@ -1077,3 +1077,4 @@ def _subtract(start, stop, intervals):
 import sys
 from .integration import integrate
 integrate(sys.modules[__name__])
+
