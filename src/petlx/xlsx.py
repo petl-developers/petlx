@@ -46,15 +46,6 @@ class XLSXView(object):
         ws = wb.get_sheet_by_name(name=self.sheetname)
         return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
                 
-    def cachetag(self):
-        p = self.filename
-        if os.path.isfile(p):
-            sumfun = self.checksumfun if self.checksumfun is not None else petl.io.defaultsumfun
-            checksum = sumfun(p)
-            return hash((checksum, self.sheetname)) 
-        else:
-            raise petl.io.Uncacheable
-                
 
 import sys    
 from .integration import integrate

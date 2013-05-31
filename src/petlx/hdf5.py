@@ -5,7 +5,6 @@ TODO doc me
 
 import sys
 
-from petl.io import Uncacheable
 from petl.util import RowContainer, data, iterpeek
 
 
@@ -90,11 +89,7 @@ class HDF5View(RowContainer):
         return iterhdf5(self.source, self.where, self.name, self.condition, 
                         self.condvars, self.start, self.stop, self.step)
     
-    def cachetag(self):
-        # TODO
-        raise Uncacheable()
-    
-    
+
 def _get_hdf5_table(source, where, name, mode='r'):
 
     try:
@@ -218,11 +213,7 @@ class HDF5SortedView(RowContainer):
         return iterhdf5sorted(self.source, self.where, self.name, self.sortby,
                               self.checkCSI, self.start, self.stop, self.step)
     
-    def cachetag(self):
-        # TODO
-        raise Uncacheable()
-    
-    
+
 def iterhdf5sorted(source, where, name, sortby, checkCSI, start, stop, step):
 
     h5file, h5tbl = _get_hdf5_table(source, where, name)

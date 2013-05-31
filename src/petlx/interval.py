@@ -9,7 +9,6 @@ from petlx.util import UnsatisfiedDependency
 from petl.util import asindices, DuplicateKeyError, records, asdict, \
     RowContainer, values, rowgroupby
 from petl.transform import addfield, sort
-from petl.io import Uncacheable
 
 
 dep_message = """
@@ -632,9 +631,6 @@ class IntervalJoinView(RowContainer):
                                 self.rstart, self.rstop, self.lfacet, self.rfacet,
                                 self.proximity)
         
-    def cachetag(self):
-        raise Uncacheable() # TODO
-    
 
 def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
                      proximity):
@@ -801,9 +797,6 @@ class IntervalLeftJoinView(RowContainer):
                                     self.rstart, self.rstop, self.lfacet, self.rfacet,
                                     self.proximity, self.missing)
         
-    def cachetag(self):
-        raise Uncacheable() # TODO
-    
 
 def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
                          proximity, missing):
@@ -938,9 +931,6 @@ class IntervalSubtractView(RowContainer):
                                         self.rstart, self.rstop, self.lfacet, self.rfacet,
                                         self.proximity, self.missing)
         
-    def cachetag(self):
-        raise Uncacheable() # TODO
-    
 
 def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
                          proximity, missing):
