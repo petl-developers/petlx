@@ -1,2 +1,2 @@
 # 0.6.1
-VERSION = '0.7-SNAPSHOT'
+VERSION = '0.7'
