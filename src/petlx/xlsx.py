@@ -30,7 +30,7 @@ def fromxlsx(filename, sheetname):
     return XLSXView(filename, sheetname)
 
 
-class XLSXView(object):
+class XLSXView(petl.util.RowContainer):
     
     def __init__(self, filename, sheetname='Sheet1'):
         self.filename = filename
@@ -46,7 +46,7 @@ class XLSXView(object):
         return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
                 
 
-import sys    
+import sys
 from .integration import integrate
 integrate(sys.modules[__name__])
 

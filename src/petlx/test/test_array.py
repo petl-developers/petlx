@@ -168,7 +168,7 @@ def test_integration():
              ('oranges', 3, 4.4),
              ('pears', 7, .1)])
     a = t.toarray()
-    u = etl().fromarray(a)
+    u = etl().fromarray(a).convert('bar', int)
     ieq(t, u)
     
     

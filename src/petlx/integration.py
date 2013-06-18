@@ -3,7 +3,6 @@ import petl.interactive as interactive
 
 
 def integrate(mod):
-
     # integrate with petl.fluent
     for n, c in mod.__dict__.items():
         if callable(c):
