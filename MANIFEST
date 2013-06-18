@@ -13,6 +13,15 @@ docs/ipython.txt
 docs/tabix.txt
 docs/vcf.txt
 docs/xlsx.txt
+docs/_build/html/_sources/array.txt
+docs/_build/html/_sources/gff3.txt
+docs/_build/html/_sources/hdf5.txt
+docs/_build/html/_sources/index.txt
+docs/_build/html/_sources/interval.txt
+docs/_build/html/_sources/ipython.txt
+docs/_build/html/_sources/tabix.txt
+docs/_build/html/_sources/vcf.txt
+docs/_build/html/_sources/xlsx.txt
 src/petlx/__init__.py
 src/petlx/array.py
 src/petlx/gff3.py
