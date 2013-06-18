@@ -16,7 +16,7 @@ https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
 """
 
 
-def fromxlsx(filename, sheetname, checksumfun=None):
+def fromxlsx(filename, sheetname):
     """
     Extract a table from a sheet in an Excel (.xlsx) file.
     
@@ -27,16 +27,15 @@ def fromxlsx(filename, sheetname, checksumfun=None):
         
     """
     
-    return XLSXView(filename, sheetname, checksumfun=checksumfun)
+    return XLSXView(filename, sheetname)
 
 
 class XLSXView(object):
     
-    def __init__(self, filename, sheetname='Sheet1', checksumfun=None):
+    def __init__(self, filename, sheetname='Sheet1'):
         self.filename = filename
         self.sheetname = sheetname
-        self.checksumfun = checksumfun
-        
+
     def __iter__(self):
         try:
             import openpyxl
