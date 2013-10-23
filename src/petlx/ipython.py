@@ -1,3 +1,4 @@
+import petl
 from petl import rowslice, tohtml
 from petl.io import StringSource
 from petlx.util import UnsatisfiedDependency
@@ -45,6 +46,9 @@ def display(tbl, *sliceargs):
     if not sliceargs:
         sliceargs = (10,)
     tbl = rowslice(tbl, *sliceargs)
+    if petl.interactive.InteractiveWrapper.repr_index_header:
+        indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
+        tbl = petl.transform.setheader(tbl, indexed_header)
     buf = StringSource()
     tohtml(tbl, buf)
     display_html(buf.getvalue(), raw=True)
@@ -82,6 +86,9 @@ def displayall(tbl):
         from IPython.core.display import display_html
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)        
+    if petl.interactive.InteractiveWrapper.repr_index_header:
+        indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
+        tbl = petl.transform.setheader(tbl, indexed_header)
     buf = StringSource()
     tohtml(tbl, buf)
     display_html(buf.getvalue(), raw=True)
