@@ -54,7 +54,7 @@ def display(tbl, *sliceargs, **kwargs):
     display_html(buf.getvalue(), raw=True)
 
 
-def displayall(tbl):
+def displayall(tbl, **kwargs):
     """
     Display *all rows* from a table inline within an iPython notebook. E.g.::
     
@@ -90,7 +90,7 @@ def displayall(tbl):
         indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
         tbl = petl.transform.setheader(tbl, indexed_header)
     buf = StringSource()
-    tohtml(tbl, buf)
+    tohtml(tbl, buf, **kwargs)
     display_html(buf.getvalue(), raw=True)
 
 
