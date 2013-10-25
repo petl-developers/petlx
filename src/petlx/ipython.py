@@ -11,7 +11,7 @@ ipython-notebook.
 """
 
 
-def display(tbl, *sliceargs):
+def display(tbl, *sliceargs, **kwargs):
     """
     Display a table inline within an iPython notebook. E.g.::
     
@@ -50,7 +50,7 @@ def display(tbl, *sliceargs):
         indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
         tbl = petl.transform.setheader(tbl, indexed_header)
     buf = StringSource()
-    tohtml(tbl, buf)
+    tohtml(tbl, buf, **kwargs)
     display_html(buf.getvalue(), raw=True)
 
 
