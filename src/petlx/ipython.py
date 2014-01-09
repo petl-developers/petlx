@@ -1,7 +1,6 @@
-import petl
-from petl import rowslice, tohtml
-from petl.io import StringSource
+from petl import rowslice
 from petlx.util import UnsatisfiedDependency
+from petl.interactive import repr_html
 
 
 dep_message = """
@@ -9,6 +8,17 @@ iPython is required. Instructions for installation can be found
 at http://ipython.org/install.html or try apt-get install 
 ipython-notebook.
 """
+
+
+def _display(tbl, sliceargs, **kwargs):
+    try:
+        from IPython.core.display import display_html
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+    if sliceargs is not None:
+        tbl = rowslice(tbl, *sliceargs)
+    html = repr_html(tbl, **kwargs)
+    display_html(html, raw=True)
 
 
 def display(tbl, *sliceargs, **kwargs):
@@ -28,30 +38,10 @@ def display(tbl, *sliceargs, **kwargs):
                 
     .. versionadded:: 0.5  
     
-    .. deprecated:: 0.6
-    
-    The :mod:`petl.interactive` module supports `_repr_html_` as of 0.13.1 so
-    this function is not necessary. E.g., the following should give an HTML 
-    rendering of the table inline within an iPython notebook::
-
-        In [0]: from petl.interactive import etl
-                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
-                etl(tbl)
-        
     """
-    try:
-        from IPython.core.display import display_html
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)        
     if not sliceargs:
-        sliceargs = (10,)
-    tbl = rowslice(tbl, *sliceargs)
-    if petl.interactive.InteractiveWrapper.repr_index_header:
-        indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
-        tbl = petl.transform.setheader(tbl, indexed_header)
-    buf = StringSource()
-    tohtml(tbl, buf, **kwargs)
-    display_html(buf.getvalue(), raw=True)
+        sliceargs = (10,)  # so you don't accidentally crash the browser with too much data
+    _display(tbl, sliceargs, **kwargs)
 
 
 def displayall(tbl, **kwargs):
@@ -71,27 +61,8 @@ def displayall(tbl, **kwargs):
                 
     .. versionadded:: 0.5  
 
-    .. deprecated:: 0.6
-    
-    The :mod:`petl.interactive` module supports `_repr_html_` as of 0.13.1 so
-    this function is not necessary. E.g., the following should give an HTML 
-    rendering of the table inline within an iPython notebook::
-
-        In [0]: from petl.interactive import etl
-                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
-                etl(tbl)        
-        
     """
-    try:
-        from IPython.core.display import display_html
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)        
-    if petl.interactive.InteractiveWrapper.repr_index_header:
-        indexed_header = ['%s|%s' % (i, f) for (i, f) in enumerate(petl.util.header(tbl))]
-        tbl = petl.transform.setheader(tbl, indexed_header)
-    buf = StringSource()
-    tohtml(tbl, buf, **kwargs)
-    display_html(buf.getvalue(), raw=True)
+    _display(tbl, None, **kwargs)
 
 
 import sys
