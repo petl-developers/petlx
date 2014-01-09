@@ -1,4 +1,4 @@
 #0.9
 #0.9.1
 #0.9.2
-VERSION = '0.10-SNAPSHOT'
+VERSION = '0.10'
