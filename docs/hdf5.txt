@@ -1,6 +1,6 @@
 .. py:module:: petlx.hdf5
 
-HDF5 Files (pytables)
+HDF5 files (pytables)
 =====================
 
 The package pytables is required. Instructions for installation can be found 

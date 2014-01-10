@@ -1,6 +1,6 @@
 .. py:module:: petlx.gff3
 
-GFF3 Utilities
+GFF3 utilities
 ==============
 
 .. autofunction:: fromgff3

@@ -1,6 +1,6 @@
 .. py:module:: petlx.ipython
 
-iPython Utilities
+iPython utilities
 =================
 
 .. autofunction:: display

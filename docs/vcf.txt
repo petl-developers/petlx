@@ -1,6 +1,6 @@
 .. py:module:: petlx.vcf
 
-Variant Call Format Utilities (PyVCF)
+Variant call format utilities (PyVCF)
 ===========================================
 
 .. autofunction:: fromvcf

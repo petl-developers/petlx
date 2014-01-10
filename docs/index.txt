@@ -1,6 +1,6 @@
 .. py:module:: petlx
 
-petlx - Optional Extensions to the petl Package
+petlx - Optional extensions to the petl package
 ===============================================
 
 :mod:`petlx` is a collection of extensions to `petl <http://petl.readthedocs.org/>`_, 
