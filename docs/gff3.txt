@@ -1,7 +1,7 @@
 .. py:module:: petlx.gff3
 
-GFF3 utilities
-==============
+GFF3
+====
 
 .. autofunction:: fromgff3
 .. autofunction:: gff3lookup

@@ -1,7 +1,7 @@
 .. py:module:: petlx.sql
 
-SQL utilities (SQLAlchemy)
-==========================
+SQL (SQLAlchemy)
+================
 
 Extension module providing some convenience functions for working with SQL databases. SQLAlchemy is required, try
 ``apt-get install python-sqlalchemy`` or ``pip install SQLAlchemy``.

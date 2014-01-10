@@ -1,7 +1,7 @@
 .. py:module:: petlx.ipython
 
-iPython utilities
-=================
+iPython
+=======
 
 .. autofunction:: display
 .. autofunction:: displayall
