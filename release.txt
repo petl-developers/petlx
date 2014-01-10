@@ -1,6 +1,6 @@
 nosetests
 sed -i -e 's/-SNAPSHOT//' src/petlx/__init__.py 
-version=`grep VERSION src/petlx/__init__.py | sed -e "s/VERSION[ ]=[ ]'\(.*\)'/\1/"`
+version=`grep VERSION src/petlx/__init__.py | sed -e "s/.*VERSION[ ]=[ ]'\(.*\)'/\1/"`
 echo $version
 git commit -a -m v$version
 git push
