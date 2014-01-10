@@ -34,12 +34,13 @@ Modules
    :maxdepth: 2
 
    xlsx
+   sql
    array
+   ipython
    interval
    gff3
    hdf5
    tabix
-   ipython
    vcf
 
 Indices and tables
