@@ -10,6 +10,7 @@ docs/hdf5.txt
 docs/index.txt
 docs/interval.txt
 docs/ipython.txt
+docs/sql.txt
 docs/tabix.txt
 docs/vcf.txt
 docs/xlsx.txt
@@ -29,6 +30,7 @@ src/petlx/hdf5.py
 src/petlx/integration.py
 src/petlx/interval.py
 src/petlx/ipython.py
+src/petlx/sql.py
 src/petlx/tabix.py
 src/petlx/testutils.py
 src/petlx/util.py
