@@ -47,6 +47,6 @@ class XLSXView(petl.util.RowContainer):
                 
 
 import sys
-from .integration import integrate
+from petlx.integration import integrate
 integrate(sys.modules[__name__])
 

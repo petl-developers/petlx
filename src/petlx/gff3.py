@@ -117,6 +117,6 @@ def gff3leftjoin(table, features, seqid='seqid', start='start', end='end', proxi
                             proximity=proximity)
 
 
-from .integration import integrate
+from petlx.integration import integrate
 integrate(sys.modules[__name__])
-    
+

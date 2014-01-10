@@ -171,6 +171,6 @@ class ArrayContainer(RowContainer):
             yield tuple(row)
             
 
-from .integration import integrate
+from petlx.integration import integrate
 integrate(sys.modules[__name__])
 

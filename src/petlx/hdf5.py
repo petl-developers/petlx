@@ -359,5 +359,5 @@ def _insert(table, h5table):
     h5table.flush() 
     
     
-from .integration import integrate
+from petlx.integration import integrate
 integrate(sys.modules[__name__])
