@@ -3,12 +3,6 @@
 SQL utilities (SQLAlchemy)
 ==========================
 
-Extension module providing some convenience functions for working with SQL databases. SQLAlchemy is required, try
-``apt-get install python-sqlalchemy`` or ``pip install SQLAlchemy``.
-
-Acknowledgments: much of the code of this module is based on the ``csvsql`` utility in the
-`csvkit <https://github.com/onyxfish/csvkit>`_ package.
-
 .. autofunction:: todb
 .. autofunction:: create_table
 .. autofunction:: drop_table
