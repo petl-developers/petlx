@@ -52,14 +52,14 @@ def make_sqlalchemy_column(col, colname, constraints=True):
     """
     Infer an appropriate SQLAlchemy column type based on a sequence of values.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
 
-    col: sequence
+    col : sequence
         A sequence of values to use to infer type, length etc.
-    colname: string
+    colname : string
         Name of column
-    constraints: bool
+    constraints : bool
         If True use length and nullable constraints
 
     """
@@ -120,18 +120,18 @@ def make_sqlalchemy_table(table, tablename, schema=None, constraints=True, metad
     """
     Create an SQLAlchemy table based on a :mod:`petl` table.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
 
-    table: sequence of sequences (petl table)
+    table : sequence of sequences (petl table)
         Table data to use to infer types etc.
-    tablename: string
+    tablename : string
         Name of the table
-    schema: string
+    schema : string
         Name of the database schema to create the table in
-    constraints: bool
+    constraints : bool
         If True use length and nullable constraints
-    metadata: sqlalchemy.MetaData
+    metadata : sqlalchemy.MetaData
         Custom table metadata
 
     """
@@ -160,20 +160,20 @@ def make_create_table_statement(table, tablename, schema=None, constraints=True,
     """
     Generate a CREATE TABLE statement based on a :mod:`petl` table.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
 
-    table: sequence of sequences (petl table)
+    table : sequence of sequences (petl table)
         Table data to use to infer types etc.
-    tablename: string
+    tablename : string
         Name of the table
-    schema: string
+    schema : string
         Name of the database schema to create the table in
-    constraints: bool
+    constraints : bool
         If True use length and nullable constraints
-    metadata: sqlalchemy.MetaData
+    metadata : sqlalchemy.MetaData
         Custom table metadata
-    dialect: string
+    dialect : string
         One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
 
     """
@@ -199,28 +199,29 @@ def create_table(table, dbo, tablename, schema=None, commit=True, constraints=Tr
     """
     Create a database table based on a sample of data in the given table.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
 
-    table: sequence of sequences (petl table)
+    table : sequence of sequences (petl table)
         Table data to load
-    dbo: database object
+    dbo : database object
         DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
-    tablename: string
+    tablename : string
         Name of the table
-    schema: string
+    schema : string
         Name of the database schema to create the table in
-    commit: bool
+    commit : bool
         If True commit the changes
-    constraints: bool
+    constraints : bool
         If True use length and nullable constraints (only relevant if create=True)
-    metadata: sqlalchemy.MetaData
+    metadata : sqlalchemy.MetaData
         Custom table metadata (only relevant if create=True)
-    dialect: string
+    dialect : string
         One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
         (only relevant if create=True)
-    sample: int
-        Number of rows to sample when inferring types etc. Set to 0 to use the whole table.
+    sample : int
+        Number of rows to sample when inferring types etc., set to 0 to use the whole table (only relevant if
+        create=True)
 
     """
 
@@ -232,6 +233,22 @@ def create_table(table, dbo, tablename, schema=None, commit=True, constraints=Tr
 
 
 def drop_table(dbo, tablename, schema=None, commit=True):
+    """
+    Drop a database table if it exists.
+
+    Parameters
+    ----------
+
+    dbo : database object
+        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
+    tablename : string
+        Name of the table
+    schema : string
+        Name of the database schema the table is in
+    commit : bool
+        If True commit the changes
+
+    """
 
     # sanitise table name
     tablename = petl.io._quote(tablename)
@@ -362,31 +379,31 @@ def todb(table, dbo, tablename, schema=None, commit=True,
     """
     Drop-in replacement for :func:`petl.todb` which also supports automatic table creation.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
 
-    table: sequence of sequences (petl table)
+    table : sequence of sequences (petl table)
         Table data to load
-    dbo: database object
+    dbo : database object
         DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
-    tablename: string
+    tablename : string
         Name of the table
-    schema: string
+    schema : string
         Name of the database schema to create the table in
-    commit: bool
+    commit : bool
         If True commit the changes
-    create: bool
+    create : bool
         If True attempt to create the table before loading, inferring types from a sample of the data
-    drop: bool
+    drop : bool
         If True attempt to drop the table before recreating (only relevant if create=True)
-    constraints: bool
+    constraints : bool
         If True use length and nullable constraints (only relevant if create=True)
-    metadata: sqlalchemy.MetaData
+    metadata : sqlalchemy.MetaData
         Custom table metadata (only relevant if create=True)
-    dialect: string
+    dialect : string
         One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
         (only relevant if create=True)
-    sample: int
+    sample : int
         Number of rows to sample when inferring types etc. Set to 0 to use the whole table.
 
     """
