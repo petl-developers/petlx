@@ -10,18 +10,23 @@ Acknowledgments: much of the code of this module is based on the ``csvsql`` util
 
 import datetime
 import logging
-from sqlalchemy import BigInteger, Boolean, Date, DateTime, Float, Integer, String, Time, Column, MetaData, Table
-from sqlalchemy.schema import CreateTable, DropTable
 import petl
 from petl import header, columns, head
 from petl.io import _is_dbapi_connection, _is_dbapi_cursor, _is_sqlalchemy_engine, _is_sqlalchemy_session, \
     _is_sqlalchemy_connection
+from petlx.util import UnsatisfiedDependency
 
 
 logger = logging.getLogger(__name__)
 warning = logger.warning
 info = logger.info
 debug = logger.debug
+
+
+dep_message = """
+The package sqlalchemy is required. Instructions for installation can be found
+at http://docs.sqlalchemy.org/ or try apt-get install python-sqlalchemy or pip install SQLAlchemy.
+"""
 
 
 DIALECTS = {
@@ -59,51 +64,56 @@ def make_sqlalchemy_column(col, colname, constraints=True):
 
     """
 
+    try:
+        import sqlalchemy
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
     col_not_none = [v for v in col if v is not None]
     sql_column_kwargs = {}
     sql_type_kwargs = {}
 
     if len(col_not_none) == 0:
-        sql_column_type = String
+        sql_column_type = sqlalchemy.String
         if constraints:
             sql_type_kwargs['length'] = NULL_COLUMN_MAX_LENGTH
 
     elif all(isinstance(v, bool) for v in col_not_none):
-        sql_column_type = Boolean
+        sql_column_type = sqlalchemy.Boolean
 
     elif all(isinstance(v, int) for v in col_not_none):
         if max(col_not_none) > SQL_INTEGER_MAX or min(col_not_none) < SQL_INTEGER_MIN:
-            sql_column_type = BigInteger
+            sql_column_type = sqlalchemy.BigInteger
         else:
-            sql_column_type = Integer
+            sql_column_type = sqlalchemy.Integer
 
     elif all(isinstance(v, long) for v in col_not_none):
-        sql_column_type = BigInteger
+        sql_column_type = sqlalchemy.BigInteger
 
     elif all(isinstance(v, (int, long)) for v in col_not_none):
-        sql_column_type = BigInteger
+        sql_column_type = sqlalchemy.BigInteger
 
     elif all(isinstance(v, (int, long, float)) for v in col_not_none):
-        sql_column_type = Float
+        sql_column_type = sqlalchemy.Float
 
     elif all(isinstance(v, datetime.date) for v in col_not_none):
-        sql_column_type = Date
+        sql_column_type = sqlalchemy.Date
 
     elif all(isinstance(v, datetime.time) for v in col_not_none):
-        sql_column_type = Time
+        sql_column_type = sqlalchemy.Time
 
     elif all(isinstance(v, datetime.datetime) for v in col_not_none):
-        sql_column_type = DateTime
+        sql_column_type = sqlalchemy.DateTime
 
     else:
-        sql_column_type = String
+        sql_column_type = sqlalchemy.String
         if constraints:
             sql_type_kwargs['length'] = max([len(unicode(v)) for v in col])
 
     if constraints:
         sql_column_kwargs['nullable'] = len(col_not_none) < len(col)
 
-    return Column(colname, sql_column_type(**sql_type_kwargs), **sql_column_kwargs)
+    return sqlalchemy.Column(colname, sql_column_type(**sql_type_kwargs), **sql_column_kwargs)
 
 
 def make_sqlalchemy_table(table, tablename, schema=None, constraints=True, metadata=None):
@@ -126,10 +136,15 @@ def make_sqlalchemy_table(table, tablename, schema=None, constraints=True, metad
 
     """
 
-    if not metadata:
-        metadata = MetaData()
+    try:
+        import sqlalchemy
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
 
-    sql_table = Table(tablename, metadata, schema=schema)
+    if not metadata:
+        metadata = sqlalchemy.MetaData()
+
+    sql_table = sqlalchemy.Table(tablename, metadata, schema=schema)
 
     fields = header(table)
     cols = columns(table)
@@ -163,6 +178,11 @@ def make_create_table_statement(table, tablename, schema=None, constraints=True,
 
     """
 
+    try:
+        import sqlalchemy
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
     sql_table = make_sqlalchemy_table(table, tablename, schema=schema, constraints=constraints, metadata=metadata)
 
     if dialect:
@@ -171,7 +191,7 @@ def make_create_table_statement(table, tablename, schema=None, constraints=True,
     else:
         sql_dialect = None
 
-    return unicode(CreateTable(sql_table).compile(dialect=sql_dialect)).strip() + ';'
+    return unicode(sqlalchemy.schema.CreateTable(sql_table).compile(dialect=sql_dialect)).strip() + ';'
 
 
 def create_table(table, dbo, tablename, schema=None, commit=True, constraints=True, metadata=None, dialect=None,
