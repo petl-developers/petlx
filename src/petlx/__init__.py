@@ -3,4 +3,5 @@
 #0.9.2
 #0.10
 #0.11
-__version__ = VERSION = '0.12'
+#0.12
+__version__ = VERSION = '0.13-SNAPSHOT'
