@@ -77,7 +77,7 @@ class VCFContainer(RowContainer):
             yield fixed_fields
             
         # fetch region?
-        if None not in {self.chrom, self.start, self.end}:
+        if None not in {self.chrom, self.start}:
             it = reader.fetch(self.chrom, self.start, self.end)
         else:
             it = reader
