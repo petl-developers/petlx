@@ -5,11 +5,11 @@ Tests for the petlx.intervals module.
 
 from petl.testutils import ieq, assertequal
 from petl.util import DuplicateKeyError, look
-from petl.fluent import etl
+import petl.fluent as etl
 
 from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
-                        facetintervallookupone, intervaljoin, intervalleftjoin, \
-                        intervaljoinvalues, intervalsubtract, collapsedintervals, _Interval
+    facetintervallookupone, intervaljoin, intervalleftjoin, \
+    intervaljoinvalues, intervalsubtract, collapsedintervals, _Interval
 
 
 def test_intervallookup():
@@ -764,22 +764,22 @@ def test_collapse():
     
 def test_integration():
     
-    left = etl((('begin', 'end', 'quux'),
-                (1, 2, 'a'),
-                (2, 4, 'b'),
-                (2, 5, 'c'),
-                (9, 14, 'd'),
-                (9, 140, 'e'),
-                (1, 1, 'f'),
-                (2, 2, 'g'),
-                (4, 4, 'h'),
-                (5, 5, 'i'),
-                (1, 8, 'j')))
+    left = etl.wrap((('begin', 'end', 'quux'),
+                     (1, 2, 'a'),
+                     (2, 4, 'b'),
+                     (2, 5, 'c'),
+                     (9, 14, 'd'),
+                     (9, 140, 'e'),
+                     (1, 1, 'f'),
+                     (2, 2, 'g'),
+                     (4, 4, 'h'),
+                     (5, 5, 'i'),
+                     (1, 8, 'j')))
 
-    right = etl((('start', 'stop', 'value'),
-                 (1, 4, 'foo'),
-                 (3, 7, 'bar'),
-                 (4, 9, 'baz')))
+    right = etl.wrap((('start', 'stop', 'value'),
+                      (1, 4, 'foo'),
+                      (3, 7, 'bar'),
+                      (4, 9, 'baz')))
 
     actual = left.intervaljoin(right, 
                                lstart='begin', lstop='end',

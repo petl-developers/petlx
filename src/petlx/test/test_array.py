@@ -11,7 +11,7 @@ from petl.testutils import ieq
 
 from petlx.array import toarray, fromarray, torecarray
 from petlx.testutils import assertclose
-from petl.fluent import etl
+import petl.fluent as etl
 
 
 def test_toarray_nodtype():
@@ -163,12 +163,12 @@ def test_fromarray():
     
 
 def test_integration():
-    t = etl([('foo', 'bar', 'baz'),
-             ('apples', 1, 2.5),
-             ('oranges', 3, 4.4),
-             ('pears', 7, .1)])
+    t = etl.wrap([('foo', 'bar', 'baz'),
+                  ('apples', 1, 2.5),
+                  ('oranges', 3, 4.4),
+                  ('pears', 7, .1)])
     a = t.toarray()
-    u = etl().fromarray(a).convert('bar', int)
+    u = etl.fromarray(a).convert('bar', int)
     ieq(t, u)
-    
-    
+
+

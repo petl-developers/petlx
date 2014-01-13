@@ -10,7 +10,7 @@ from tables import openFile, IsDescription, Int32Col, Float32Col, \
                 StringCol
 from petl.testutils import ieq
 from petl.transform import sort
-from petl.fluent import etl
+import petl.fluent as etl
 
 
 from petlx.hdf5 import fromhdf5, fromhdf5sorted, tohdf5, appendhdf5
@@ -194,17 +194,15 @@ def test_integration():
     h5file.close()
     
     # load some initial data via tohdf5()
-    table1 = etl((('foo', 'bar'),
-                  (1, 'asdfgh'),
-                  (2, 'qwerty'),
-                  (3, 'zxcvbn')))
+    table1 = etl.wrap((('foo', 'bar'),
+                       (1, 'asdfgh'),
+                       (2, 'qwerty'),
+                       (3, 'zxcvbn')))
     table1.tohdf5('test4.h5', '/testgroup', 'testtable')
-    ieq(table1, etl().fromhdf5('test4.h5', '/testgroup', 'testtable'))
+    ieq(table1, etl.fromhdf5('test4.h5', '/testgroup', 'testtable'))
 
     # append some more data
     table1.appendhdf5('test4.h5', '/testgroup', 'testtable')
-    ieq(chain(table1, table1[1:]), etl().fromhdf5('test4.h5', '/testgroup', 'testtable'))
+    ieq(chain(table1, table1[1:]), etl.fromhdf5('test4.h5', '/testgroup', 'testtable'))
     
-    
-    
-    
+
