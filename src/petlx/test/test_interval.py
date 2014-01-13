@@ -21,39 +21,39 @@ def test_intervallookup():
     
     lkp = intervallookup(table, 'start', 'stop')
     
-    actual = lkp[1:2]
+    actual = lkp.find(1, 2)
     expect = [(1, 4, 'foo')]
     ieq(expect, actual)
     
-    actual = lkp[2:4]
+    actual = lkp.find(2, 4)
     expect = [(1, 4, 'foo'), (3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp[2:5]
+    actual = lkp.find(2, 5)
     expect = [(1, 4, 'foo'), (3, 7, 'bar'), (4, 9, 'baz')]
     ieq(expect, actual)
     
-    actual = lkp[9:14]
+    actual = lkp.find(9, 14)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp[19:140]
+    actual = lkp.find(19, 140)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp[1]
+    actual = lkp.find(1)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp[2]
+    actual = lkp.find(2)
     expect = [(1, 4, 'foo')]
     ieq(expect, actual)
     
-    actual = lkp[4]
+    actual = lkp.find(4)
     expect = [(3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp[5]
+    actual = lkp.find(5)
     expect = [(3, 7, 'bar'), (4, 9, 'baz')]
     ieq(expect, actual)
     
@@ -65,41 +65,43 @@ def test_intervallookup_2():
              (3, 7, 'bar'),
              (4, 9, 'baz'))
     
-    lkp = intervallookup(table, 'start', 'stop', valuespec='value', proximity=1)
+    lkp = intervallookup(table, 'start', 'stop', value='value', proximity=1)
     
-    actual = lkp[1:2]
+    actual = lkp.find(1, 2)
     expect = ['foo']
     ieq(expect, actual)
     
-    actual = lkp[2:4]
+    actual = lkp.find(2, 4)
     expect = ['foo', 'bar', 'baz']
     ieq(expect, actual)
     
-    actual = lkp[2:5]
+    actual = lkp.find(2, 5)
     expect = ['foo', 'bar', 'baz']
     ieq(expect, actual)
     
-    actual = lkp[9:14]
+    actual = lkp.find(9, 14)
     expect = ['baz']
     ieq(expect, actual)
     
-    actual = lkp[19:140]
+    actual = lkp.find(19, 140)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp[1]
+    actual = lkp.find(1)
+    expect = ['foo']
+    print expect
+    print actual
+    ieq(expect, actual)
+    
+    actual = lkp.find(2)
     expect = ['foo']
     ieq(expect, actual)
     
-    actual = lkp[2]
-    expect = ['foo']
-    ieq(expect, actual)
-    
-    actual = lkp[4]
+    actual = lkp.find(4)
     expect = ['foo', 'bar', 'baz']
     ieq(expect, actual)
     
-    actual = lkp[5]
+    actual = lkp.find(5)
     expect = ['bar', 'baz']
     ieq(expect, actual)
 
@@ -111,72 +113,72 @@ def test_intervallookupone():
              (3, 7, 'bar'),
              (4, 9, 'baz'))
     
-    lkp = intervallookupone(table, 'start', 'stop', valuespec='value')
+    lkp = intervallookupone(table, 'start', 'stop', value='value')
     
-    actual = lkp[1:2]
+    actual = lkp.find(1, 2)
     expect = 'foo'
     assertequal(expect, actual)
     
     try:
-        actual = lkp[2:4]
+        actual = lkp.find(2, 4)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
     try:
-        actual = lkp[2:5]
+        actual = lkp.find(2, 5)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
     try:
-        actual = lkp[4:5]
+        actual = lkp.find(4, 5)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
     try:
-        actual = lkp[5:7]
+        actual = lkp.find(5, 7)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
-    actual = lkp[8:9]
+    actual = lkp.find(8, 9)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp[9:14]
+    actual = lkp.find(9, 14)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[19:140]
+    actual = lkp.find(19, 140)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[1]
+    actual = lkp.find(1)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[2]
+    actual = lkp.find(2)
     expect =  'foo'
     assertequal(expect, actual)
     
-    actual = lkp[4]
+    actual = lkp.find(4)
     expect = 'bar'
     assertequal(expect, actual)
     
     try:
-        actual = lkp[5]
+        actual = lkp.find(5)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
-    actual = lkp[8]
+    actual = lkp.find(8)
     expect = 'baz'
     assertequal(expect, actual)
     
@@ -188,57 +190,57 @@ def test_intervallookupone_2():
              (3, 7, 'bar'),
              (4, 9, 'baz'))
     
-    lkp = intervallookupone(table, 'start', 'stop', valuespec='value', strict=False)
+    lkp = intervallookupone(table, 'start', 'stop', value='value', strict=False)
     
-    actual = lkp[1:2]
+    actual = lkp.find(1, 2)
     expect = 'foo'
     assertequal(expect, actual)
     
-    actual = lkp[2:4]
+    actual = lkp.find(2, 4)
     expect = 'foo'
     assertequal(expect, actual)
     
-    actual = lkp[2:5]
+    actual = lkp.find(2, 5)
     expect = 'foo'
     assertequal(expect, actual)
     
-    actual = lkp[4:5]
+    actual = lkp.find(4, 5)
     expect = 'bar'
     assertequal(expect, actual)
     
-    actual = lkp[5:7]
+    actual = lkp.find(5, 7)
     expect = 'bar'
     assertequal(expect, actual)
     
-    actual = lkp[8:9]
+    actual = lkp.find(8, 9)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp[9:14]
+    actual = lkp.find(9, 14)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[19:140]
+    actual = lkp.find(19, 140)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[1]
+    actual = lkp.find(1)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp[2]
+    actual = lkp.find(2)
     expect =  'foo'
     assertequal(expect, actual)
     
-    actual = lkp[4]
+    actual = lkp.find(4)
     expect = 'bar'
     ieq(expect, actual)
     
-    actual = lkp[5]
+    actual = lkp.find(5)
     expect = 'bar'
     ieq(expect, actual)
     
-    actual = lkp[8]
+    actual = lkp.find(8)
     expect = 'baz'
     ieq(expect, actual)
     
@@ -250,49 +252,49 @@ def test_facetintervallookup():
              ('apple', 3, 7, 'bar'),
              ('orange', 4, 9, 'baz'))
     
-    lkp = facetintervallookup(table, key='type', start='start', stop='stop')
+    lkp = facetintervallookup(table, facet='type', start='start', stop='stop')
 
-    actual = lkp['apple'][1:2]
+    actual = lkp['apple'].find(1, 2)
     expect = [('apple', 1, 4, 'foo')]
     ieq(expect, actual)
     
-    actual = lkp['apple'][2:4]
+    actual = lkp['apple'].find(2, 4)
     expect = [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp['apple'][2:5]
+    actual = lkp['apple'].find(2, 5)
     expect = [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp['orange'][2:5]
+    actual = lkp['orange'].find(2, 5)
     expect = [('orange', 4, 9, 'baz')]
     ieq(expect, actual)
     
-    actual = lkp['orange'][9:14]
+    actual = lkp['orange'].find(9, 14)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp['orange'][19:140]
+    actual = lkp['orange'].find(19, 140)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp['apple'][1]
+    actual = lkp['apple'].find(1)
     expect = []
     ieq(expect, actual)
     
-    actual = lkp['apple'][2]
+    actual = lkp['apple'].find(2)
     expect = [('apple', 1, 4, 'foo')]
     ieq(expect, actual)
     
-    actual = lkp['apple'][4]
+    actual = lkp['apple'].find(4)
     expect = [('apple', 3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp['apple'][5]
+    actual = lkp['apple'].find(5)
     expect = [('apple', 3, 7, 'bar')]
     ieq(expect, actual)
     
-    actual = lkp['orange'][5]
+    actual = lkp['orange'].find(5)
     expect = [('orange', 4, 9, 'baz')]
     ieq(expect, actual)
 
@@ -304,83 +306,83 @@ def test_facetintervallookupone():
              ('apple', 3, 7, 'bar'),
              ('orange', 4, 9, 'baz'))
     
-    lkp = facetintervallookupone(table, key='type', start='start', stop='stop', valuespec='value')
+    lkp = facetintervallookupone(table, facet='type', start='start', stop='stop', value='value')
     
-    actual = lkp['apple'][1:2]
+    actual = lkp['apple'].find(1, 2)
     expect = 'foo'
     assertequal(expect, actual)
     
     try:
-        actual = lkp['apple'][2:4]
+        actual = lkp['apple'].find(2, 4)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
     try:
-        actual = lkp['apple'][2:5]
+        actual = lkp['apple'].find(2, 5)
     except DuplicateKeyError:
         pass
     else:
         assert False, 'expected error'
     
-    actual = lkp['apple'][4:5]
+    actual = lkp['apple'].find(4, 5)
     expect = 'bar'
     assertequal(expect, actual)
     
-    actual = lkp['orange'][4:5]
+    actual = lkp['orange'].find(4, 5)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp['apple'][5:7]
+    actual = lkp['apple'].find(5, 7)
     expect = 'bar'
     assertequal(expect, actual)
 
-    actual = lkp['orange'][5:7]
+    actual = lkp['orange'].find(5, 7)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp['apple'][8:9]
+    actual = lkp['apple'].find(8, 9)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp['orange'][8:9]
+    actual = lkp['orange'].find(8, 9)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp['orange'][9:14]
+    actual = lkp['orange'].find(9, 14)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp['orange'][19:140]
+    actual = lkp['orange'].find(19, 140)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp['apple'][1]
+    actual = lkp['apple'].find(1)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp['apple'][2]
+    actual = lkp['apple'].find(2)
     expect =  'foo'
     assertequal(expect, actual)
     
-    actual = lkp['apple'][4]
+    actual = lkp['apple'].find(4)
     expect = 'bar'
     assertequal(expect, actual)
     
-    actual = lkp['apple'][5]
+    actual = lkp['apple'].find(5)
     expect = 'bar'
     assertequal(expect, actual)
     
-    actual = lkp['orange'][5]
+    actual = lkp['orange'].find(5)
     expect = 'baz'
     assertequal(expect, actual)
     
-    actual = lkp['apple'][8]
+    actual = lkp['apple'].find(8)
     expect = None
     assertequal(expect, actual)
     
-    actual = lkp['orange'][8]
+    actual = lkp['orange'].find(8)
     expect = 'baz'
     assertequal(expect, actual)
     
@@ -639,7 +641,7 @@ def test_intervaljoinvalues_faceted():
              ('apple', 3, 7, 'bar'),
              ('orange', 4, 9, 'baz'))
     
-    expect = (('fruit', 'begin', 'end', 'values'),
+    expect = (('fruit', 'begin', 'end', 'value'),
               ('apple', 1, 2, ['foo']),
               ('apple', 2, 4, ['foo', 'bar']),
               ('apple', 2, 5, ['foo', 'bar']),
@@ -654,7 +656,7 @@ def test_intervaljoinvalues_faceted():
 
     actual = intervaljoinvalues(left, right, lstart='begin', lstop='end', 
                                 rstart='start', rstop='stop', lfacet='fruit',
-                                rfacet='type', valuespec='value')
+                                rfacet='type', value='value')
 
     ieq(expect, actual)
     ieq(expect, actual)

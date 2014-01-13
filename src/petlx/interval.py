@@ -3,10 +3,10 @@ Functions for working with intervals.
 
 """
 
-from operator import itemgetter
+from operator import itemgetter, attrgetter
 
 from petlx.util import UnsatisfiedDependency
-from petl.util import asindices, DuplicateKeyError, records, asdict, \
+from petl.util import asindices, DuplicateKeyError, records, \
     RowContainer, values, rowgroupby
 from petl.transform import addfield, sort
 
@@ -17,7 +17,117 @@ at https://bitbucket.org/james_taylor/bx-python/wiki/Home or try pip install bx-
 """
 
 
-def intervallookup(table, start='start', stop='stop', valuespec=None, 
+def tupletree(table, start='start', stop='stop', value=None):
+    """
+    Construct an interval tree for the given table, where each node in the tree is a row of the table.
+
+    """
+
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
+    tree = bx.intervals.intersection.IntervalTree()
+    it = iter(table)
+    fields = it.next()
+    assert start in fields, 'start field not recognised'
+    assert stop in fields, 'stop field not recognised'
+    getstart = itemgetter(fields.index(start))
+    getstop = itemgetter(fields.index(stop))
+    if value is None:
+        getvalue = tuple
+    else:
+        valueindices = asindices(fields, value)
+        assert len(valueindices) > 0, 'invalid value field specification'
+        getvalue = itemgetter(*valueindices)
+    for row in it:
+        tree.add(getstart(row), getstop(row), getvalue(row))
+    return tree
+
+
+def tupletrees(table, facet, start='start', stop='stop', value=None):
+    """
+    Construct faceted interval trees for the given table, where each node in the tree is a row of the table.
+
+    """
+
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
+    it = iter(table)
+    fields = it.next()
+    assert start in fields, 'start field not recognised'
+    assert stop in fields, 'stop field not recognised'
+    getstart = itemgetter(fields.index(start))
+    getstop = itemgetter(fields.index(stop))
+    if value is None:
+        getvalue = tuple
+    else:
+        valueindices = asindices(fields, value)
+        assert len(valueindices) > 0, 'invalid value field specification'
+        getvalue = itemgetter(*valueindices)
+    keyindices = asindices(fields, facet)
+    assert len(keyindices) > 0, 'invalid key'
+    getkey = itemgetter(*keyindices)
+
+    trees = dict()
+    for row in it:
+        k = getkey(row)
+        if k not in trees:
+            trees[k] = bx.intervals.intersection.IntervalTree()
+        trees[k].add(getstart(row), getstop(row), getvalue(row))
+    return trees
+
+
+def recordtree(table, start='start', stop='stop'):
+    """
+    Construct an interval tree for the given table, where each node in the tree is a row of the table represented
+    as a hybrid tuple/dictionary-style record object.
+
+    """
+
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
+    getstart = attrgetter(start)
+    getstop = attrgetter(stop)
+
+    tree = bx.intervals.intersection.IntervalTree()
+    for rec in records(table):
+        tree.add(getstart(rec), getstop(rec), rec)
+
+
+def recordtrees(table, facet, start='start', stop='stop'):
+    """
+    Construct faceted interval trees for the given table, where each node in the tree is a row of the table represented
+    as a hybrid tuple/dictionary-style record object.
+
+    """
+
+    try:
+        import bx.intervals
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
+    getstart = attrgetter(start)
+    getstop = attrgetter(stop)
+    getkey = attrgetter(facet)
+
+    trees = dict()
+    for rec in records(table):
+        k = getkey(rec)
+        if k not in trees:
+            trees[k] = bx.intervals.intersection.IntervalTree()
+        trees[k].add(getstart(rec), getstop(rec), rec)
+    return trees
+
+
+def intervallookup(table, start='start', stop='stop', value=None,
                    proximity=0):
     """
     Construct an interval lookup for the given table. E.g.::
@@ -28,84 +138,67 @@ def intervallookup(table, start='start', stop='stop', valuespec=None,
         ...          [3, 7, 'bar'],
         ...          [4, 9, 'baz']]
         >>> lkp = intervallookup(table, 'start', 'stop')
-        >>> lkp[1:2]
+        >>> lkp.find(1, 2)
         [(1, 4, 'foo')]
-        >>> lkp[2:4]
+        >>> lkp.find(2, 4)
         [(1, 4, 'foo'), (3, 7, 'bar')]
-        >>> lkp[2:5]
+        >>> lkp.find(2, 5)
         [(1, 4, 'foo'), (3, 7, 'bar'), (4, 9, 'baz')]
-        >>> lkp[9:14]
+        >>> lkp.find(9, 14)
         []
-        >>> lkp[19:140]
+        >>> lkp.find(19, 140)
         []
-        >>> lkp[1]
+        >>> lkp.find(1)
         []
-        >>> lkp[2]
+        >>> lkp.find(2)
         [(1, 4, 'foo')]
-        >>> lkp[4]
+        >>> lkp.find(4)
         [(3, 7, 'bar')]
-        >>> lkp[5]
+        >>> lkp.find(5)
         [(3, 7, 'bar'), (4, 9, 'baz')]
 
     Note that there must be a non-zero overlap between the query and the interval
-    for the interval to be retrieved, hence `lkp[1]` returns nothing. Use the 
+    for the interval to be retrieved, hence `lkp.find(1)` returns nothing. Use the
     `proximity` keyword argument to find intervals within a given distance of
     the query.
     
-    Some examples using the `proximity` and `valuespec` keyword arguments::
+    Some examples using the `proximity` and `value` keyword arguments::
     
         >>> table = [['start', 'stop', 'value'],
         ...          [1, 4, 'foo'],
         ...          [3, 7, 'bar'],
         ...          [4, 9, 'baz']]
-        >>> lkp = intervallookup(table, 'start', 'stop', valuespec='value', proximity=1)
-        >>> lkp[1:2]
+        >>> lkp = intervallookup(table, 'start', 'stop', value='value', proximity=1)
+        >>> lkp.find(1, 2)
         ['foo']
-        >>> lkp[2:4]
+        >>> lkp.find(2, 4)
         ['foo', 'bar', 'baz']
-        >>> lkp[2:5]
+        >>> lkp.find(2, 5)
         ['foo', 'bar', 'baz']
-        >>> lkp[9:14]
+        >>> lkp.find(9, 14)
         ['baz']
-        >>> lkp[19:140]
+        >>> lkp.find(19, 140)
         []
-        >>> lkp[1]
+        >>> lkp.find(1)
         ['foo']
-        >>> lkp[2]
+        >>> lkp.find(2)
         ['foo']
-        >>> lkp[4]
+        >>> lkp.find(4)
         ['foo', 'bar', 'baz']
-        >>> lkp[5]
+        >>> lkp.find(5)
         ['bar', 'baz']
-        >>> lkp[9]
+        >>> lkp.find(9)
         ['baz']
 
     .. versionadded:: 0.2
     
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    tree = bx.intervals.intersection.IntervalTree()
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    if valuespec is None:
-        valuespec = fields # default valuespec is complete row
-    valueindices = asindices(fields, valuespec)
-    assert len(valueindices) > 0, 'invalid valuespec'
-    getvalue = itemgetter(*valueindices)
-    for row in it:
-        tree.add(getstart(row), getstop(row), getvalue(row))
-    return IntervalTreeWrapper(tree, proximity=proximity)
+    tree = tupletree(table, start=start, stop=stop, value=value)
+    return IntervalTreeLookup(tree, proximity=proximity)
 
 
-class IntervalTreeWrapper(object):
+class IntervalTreeLookup(object):
     
     def __init__(self, tree=None, proximity=0):
         try:
@@ -117,24 +210,27 @@ class IntervalTreeWrapper(object):
         else:
             self.tree = tree
         self.proximity = proximity
+
+    def find(self, start, stop=None):
+        if stop is None:
+            stop = start + self.proximity
+        else:
+            stop = stop + self.proximity
+        start = start - self.proximity
+        return self.tree.find(start, stop)
         
     def __getitem__(self, item):
+        # maintain for backwards compatibility but this usage is deprecated
+        # use find() instead
         if isinstance(item, (int, long, float)):
-            start = item - self.proximity
-            stop = item + self.proximity
+            return self.find(item)
         elif isinstance(item, slice):
-            start = item.start - self.proximity
-            stop = item.stop + self.proximity
+            return self.find(item.start, item.stop)
         else:
-            assert False, 'invalid item request'
-        results = self.tree.find(start, stop)
-        return results
-            
-    def __getattr__(self, attr):
-        return getattr(self.tree, attr)
-    
-            
-def intervallookupone(table, start='start', stop='stop', valuespec=None, proximity=0, strict=True):
+            raise Exception('invalid item request')
+
+
+def intervallookupone(table, start='start', stop='stop', value=None, proximity=0, strict=True):
     """
     Construct an interval lookup for the given table, returning at most one
     result for each query. If ``strict=True`` is given, queries returning more
@@ -147,28 +243,11 @@ def intervallookupone(table, start='start', stop='stop', valuespec=None, proximi
     
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    tree = bx.intervals.intersection.IntervalTree()
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    if valuespec is None:
-        valuespec = fields # default valuespec is complete row
-    valueindices = asindices(fields, valuespec)
-    assert len(valueindices) > 0, 'invalid valuespec'
-    getvalue = itemgetter(*valueindices)
-    for row in it:
-        tree.add(getstart(row), getstop(row), getvalue(row))
-    return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
+    tree = tupletree(table, start=start, stop=stop, value=value)
+    return IntervalTreeLookupOne(tree, proximity=proximity, strict=strict)
 
 
-class IntervalTreeReturnOneWrapper(object):
+class IntervalTreeLookupOne(object):
     
     def __init__(self, tree=None, proximity=0, strict=True):
         try:
@@ -182,15 +261,12 @@ class IntervalTreeReturnOneWrapper(object):
         self.proximity = proximity
         self.strict = strict
         
-    def __getitem__(self, item):
-        if isinstance(item, (int, long, float)):
-            start = item - self.proximity
-            stop = item + self.proximity
-        elif isinstance(item, slice):
-            start = item.start - self.proximity
-            stop = item.stop + self.proximity
+    def find(self, start, stop=None):
+        if stop is None:
+            stop = start + self.proximity
         else:
-            assert False, 'invalid item request'
+            stop = stop + self.proximity
+        start = start - self.proximity
         results = self.tree.find(start, stop)
         if len(results) == 0:
             return None
@@ -199,53 +275,44 @@ class IntervalTreeReturnOneWrapper(object):
         else:
             return results[0]
 
-    def __getattr__(self, attr):
-        return getattr(self.tree, attr)
-    
-            
+    def __getitem__(self, item):
+        # maintain for backwards compatibility but this usage is deprecated
+        # use find() instead
+        if isinstance(item, (int, long, float)):
+            return self.find(item)
+        elif isinstance(item, slice):
+            return self.find(item.start, item.stop)
+        else:
+            raise Exception('invalid item request')
+
+
 def intervalrecordlookup(table, start='start', stop='stop', proximity=0):
     """
-    As :func:`intervallookup` but return records (dictionaries of values indexed
-    by field name). 
+    As :func:`intervallookup` but return records.
     
     .. versionadded:: 0.2
 
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    tree = bx.intervals.intersection.IntervalTree()
-    for rec in records(table):
-        if start in rec and stop in rec:
-            tree.add(rec[start], rec[stop], rec)
-    return IntervalTreeWrapper(tree, proximity=proximity)
+    tree = recordtree(table, start=start, stop=stop)
+    return IntervalTreeLookup(tree, proximity=proximity)
 
 
 def intervalrecordlookupone(table, start='start', stop='stop', proximity=0, 
                             strict=True):
     """
-    As :func:`intervallookupone` but return records (dictionaries of values indexed
-    by field name).
+    As :func:`intervallookupone` but return records.
 
     .. versionadded:: 0.2
 
     """
 
-    try:
-        import bx.intervals
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    tree = bx.intervals.intersection.IntervalTree()
-    for rec in records(table):
-        if start in rec and stop in rec:
-            tree.add(rec[start], rec[stop], rec)
-    return IntervalTreeReturnOneWrapper(tree, proximity=proximity, strict=strict)
+    tree = recordtree(table, start=start, stop=stop)
+    return IntervalTreeLookupOne(tree, proximity=proximity, strict=strict)
 
 
-def facetintervallookup(table, key, start='start', stop='stop', 
-                           valuespec=None, proximity=0):
+def facetintervallookup(table, facet, start='start', stop='stop',
+                        value=None, proximity=0):
     """
     Construct a faceted interval lookup for the given table. E.g.::
 
@@ -262,60 +329,42 @@ def facetintervallookup(table, key, start='start', stop='stop',
         | 'orange' | 4       | 9      | 'baz'   |
         +----------+---------+--------+---------+
         
-        >>> lkp = facetintervallookup(table, key='type', start='start', stop='stop')
-        >>> lkp['apple'][1:2]
+        >>> lkp = facetintervallookup(table, facet='type', start='start', stop='stop')
+        >>> lkp['apple'].find(1, 2)
         [('apple', 1, 4, 'foo')]
-        >>> lkp['apple'][2:4]
+        >>> lkp['apple'].find(2, 4)
         [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
-        >>> lkp['apple'][2:5]
+        >>> lkp['apple'].find(2, 5)
         [('apple', 1, 4, 'foo'), ('apple', 3, 7, 'bar')]
-        >>> lkp['orange'][2:5]
+        >>> lkp['orange'].find(2, 5)
         [('orange', 4, 9, 'baz')]
-        >>> lkp['orange'][9:14]
+        >>> lkp['orange'].find(9, 14)
         []
-        >>> lkp['orange'][19:140]
+        >>> lkp['orange'].find(19, 140)
         []
-        >>> lkp['apple'][1]
+        >>> lkp['apple'].find(1)
         []
-        >>> lkp['apple'][2]
+        >>> lkp['apple'].find(2)
         [('apple', 1, 4, 'foo')]
-        >>> lkp['apple'][4]
+        >>> lkp['apple'].find(4)
         [('apple', 3, 7, 'bar')]
-        >>> lkp['apple'][5]
+        >>> lkp['apple'].find(5)
         [('apple', 3, 7, 'bar')]
-        >>> lkp['orange'][5]
+        >>> lkp['orange'].find(5)
         [('orange', 4, 9, 'baz')]
 
     .. versionadded:: 0.2
     
     """
-    
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    if valuespec is None:
-        valuespec = fields # default valuespec is complete row
-    valueindices = asindices(fields, valuespec)
-    assert len(valueindices) > 0, 'invalid valuespec'
-    getvalue = itemgetter(*valueindices)
-    keyindices = asindices(fields, key)
-    assert len(keyindices) > 0, 'invalid key'
-    getkey = itemgetter(*keyindices)
 
-    trees = dict()
-    for row in it:
-        k = getkey(row)
-        if k not in trees:
-            trees[k] = IntervalTreeWrapper(proximity=proximity)
-        trees[k].add(getstart(row), getstop(row), getvalue(row))
+    trees = tupletrees(table, facet, start=start, stop=stop, value=value)
+    for k in trees:
+        trees[k] = IntervalTreeLookup(trees[k], proximity=proximity)
     return trees
 
 
-def facetintervallookupone(table, key, start='start', stop='stop', 
-                           valuespec=None, proximity=0, strict=True):
+def facetintervallookupone(table, facet, start='start', stop='stop',
+                           value=None, proximity=0, strict=True):
     """
     Construct a faceted interval lookup for the given table, returning at most one
     result for each query, e.g.::
@@ -333,45 +382,45 @@ def facetintervallookupone(table, key, start='start', stop='stop',
         | 'orange' | 4       | 9      | 'baz'   |
         +----------+---------+--------+---------+
         
-        >>> lkp = facetintervallookupone(table, key='type', start='start', stop='stop', valuespec='value')
-        >>> lkp['apple'][1:2]
+        >>> lkp = facetintervallookupone(table, key='type', start='start', stop='stop', value='value')
+        >>> lkp['apple'].find(1, 2)
         'foo'
-        >>> lkp['apple'][2:4]
+        >>> lkp['apple'].find(2, 4)
         Traceback (most recent call last):
           File "<stdin>", line 1, in <module>
           File "petlx/interval.py", line 191, in __getitem__
             raise DuplicateKeyError
         petl.util.DuplicateKeyError
-        >>> lkp['apple'][2:5]
+        >>> lkp['apple'].find(2, 5)
         Traceback (most recent call last):
           File "<stdin>", line 1, in <module>
           File "petlx/interval.py", line 191, in __getitem__
             raise DuplicateKeyError
         petl.util.DuplicateKeyError
-        >>> lkp['apple'][4:5]
+        >>> lkp['apple'].find(4, 5)
         'bar'
-        >>> lkp['orange'][4:5]
+        >>> lkp['orange'].find(4, 5)
         'baz'
-        >>> lkp['apple'][5:7]
+        >>> lkp['apple'].find(5, 7)
         'bar'
-        >>> lkp['orange'][5:7]
+        >>> lkp['orange'].find(5, 7)
         'baz'
-        >>> lkp['apple'][8:9]
-        >>> lkp['orange'][8:9]
+        >>> lkp['apple'].find(8, 9)
+        >>> lkp['orange'].find(8, 9)
         'baz'
-        >>> lkp['orange'][9:14]
-        >>> lkp['orange'][19:140]
-        >>> lkp['apple'][1]
-        >>> lkp['apple'][2]
+        >>> lkp['orange'].find(9, 14)
+        >>> lkp['orange'].find(19, 140)
+        >>> lkp['apple'].find(1)
+        >>> lkp['apple'].find(2)
         'foo'
-        >>> lkp['apple'][4]
+        >>> lkp['apple'].find(4)
         'bar'
-        >>> lkp['apple'][5]
+        >>> lkp['apple'].find(5)
         'bar'
-        >>> lkp['orange'][5]
+        >>> lkp['orange'].find(5)
         'baz'
-        >>> lkp['apple'][8]
-        >>> lkp['orange'][8]
+        >>> lkp['apple'].find(8)
+        >>> lkp['orange'].find(8)
         'baz'
     
     
@@ -385,83 +434,37 @@ def facetintervallookupone(table, key, start='start', stop='stop',
     
     """
     
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    if valuespec is None:
-        valuespec = fields # default valuespec is complete row
-    valueindices = asindices(fields, valuespec)
-    assert len(valueindices) > 0, 'invalid valuespec'
-    getvalue = itemgetter(*valueindices)
-    keyindices = asindices(fields, key)
-    assert len(keyindices) > 0, 'invalid key'
-    getkey = itemgetter(*keyindices)
-
-    trees = dict()
-    for row in it:
-        k = getkey(row)
-        if k not in trees:
-            trees[k] = IntervalTreeReturnOneWrapper(proximity=proximity, strict=strict)
-        trees[k].add(getstart(row), getstop(row), getvalue(row))
+    trees = tupletrees(table, facet, start=start, stop=stop, value=value)
+    for k in trees:
+        trees[k] = IntervalTreeLookupOne(trees[k], proximity=proximity, strict=strict)
     return trees
 
 
-def facetintervalrecordlookup(table, key, start='start', stop='stop', proximity=0):
+def facetintervalrecordlookup(table, facet, start='start', stop='stop', proximity=0):
     """
-    As :func:`facetintervallookup` but return records (dictionaries of values indexed
-    by field name). 
+    As :func:`facetintervallookup` but return records.
     
     .. versionadded:: 0.2
 
     """
 
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    keyindices = asindices(fields, key)
-    assert len(keyindices) > 0, 'invalid key'
-    getkey = itemgetter(*keyindices)
-
-    trees = dict()
-    for row in it:
-        k = getkey(row)
-        if k not in trees:
-            trees[k] = IntervalTreeWrapper(proximity=proximity)
-        trees[k].add(getstart(row), getstop(row), asdict(fields, row))
+    trees = recordtrees(table, facet, start=start, stop=stop)
+    for k in trees:
+        trees[k] = IntervalTreeLookup(trees[k], proximity=proximity)
     return trees
 
 
-def facetintervalrecordlookupone(table, key, start, stop, proximity=0, strict=True):
+def facetintervalrecordlookupone(table, facet, start, stop, proximity=0, strict=True):
     """
-    As :func:`facetintervallookupone` but return records (dictionaries of values indexed
-    by field name). 
+    As :func:`facetintervallookupone` but return records.
 
     .. versionadded:: 0.2
 
     """
     
-    it = iter(table)
-    fields = it.next()
-    assert start in fields, 'start field not recognised'
-    assert stop in fields, 'stop field not recognised'
-    getstart = itemgetter(fields.index(start))
-    getstop = itemgetter(fields.index(stop))
-    keyindices = asindices(fields, key)
-    assert len(keyindices) > 0, 'invalid key'
-    getkey = itemgetter(*keyindices)
-
-    trees = dict()
-    for row in it:
-        k = getkey(row)
-        if k not in trees:
-            trees[k] = IntervalTreeReturnOneWrapper(proximity=proximity, strict=strict)
-        trees[k].add(getstart(row), getstop(row), asdict(fields, row))
+    trees = recordtrees(table, facet, start=start, stop=stop)
+    for k in trees:
+        trees[k] = IntervalTreeLookup(trees[k], proximity=proximity, strict=strict)
     return trees
 
 
@@ -537,7 +540,6 @@ def intervaljoin(left, right, lstart='start', lstop='stop', rstart='start',
     An additional key comparison can be added, e.g.::
     
         >>> from petl import look
-        >>> from petlx.interval import intervaljoin    
         >>> look(left)
         +----------+---------+-------+
         | 'fruit'  | 'begin' | 'end' |
@@ -661,11 +663,12 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
     if rfacet is None:
         # build interval lookup for right table
         lookup = intervallookup(right, rstart, rstop, proximity=proximity)
+        find = lookup.find
         # main loop
         for lrow in lit:
             start = getlstart(lrow)
             stop = getlstop(lrow)
-            rrows = lookup[start:stop]
+            rrows = find(start, stop)
             for rrow in rrows:
                 outrow = list(lrow)
                 outrow.extend(rrow)
@@ -673,8 +676,11 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
 
     else:
         # build interval lookup for right table
-        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop,
-                                     proximity=proximity)   
+        lookup = facetintervallookup(right, facet=rfacet, start=rstart, stop=rstop,
+                                     proximity=proximity)
+        find = dict()
+        for f in lookup:
+            find[f] = lookup[f].find
         # getter for facet key values in left table
         getlkey = itemgetter(*asindices(lfields, lfacet))
         # main loop
@@ -683,7 +689,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             start = getlstart(lrow)
             stop = getlstop(lrow)
             try:
-                rrows = lookup[lkey][start:stop]
+                rrows = find[lkey](start, stop)
             except KeyError:
                 pass
             except AttributeError:
@@ -827,11 +833,12 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
     if rfacet is None:
         # build interval lookup for right table
         lookup = intervallookup(right, rstart, rstop, proximity=proximity)
+        find = lookup.find
         # main loop
         for lrow in lit:
             start = getlstart(lrow)
             stop = getlstop(lrow)
-            rrows = lookup[start:stop]
+            rrows = find(start, stop)
             if rrows:
                 for rrow in rrows:
                     outrow = list(lrow)
@@ -844,8 +851,11 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
 
     else:
         # build interval lookup for right table
-        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop,
+        lookup = facetintervallookup(right, facet=rfacet, start=rstart, stop=rstop,
                                      proximity=proximity)   
+        find = dict()
+        for f in lookup:
+            find[f] = lookup[f].find
         # getter for facet key values in left table
         getlkey = itemgetter(*asindices(lfields, lfacet))
         # main loop
@@ -855,7 +865,7 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
             stop = getlstop(lrow)
             
             try:
-                rrows = lookup[lkey][start:stop]
+                rrows = find[lkey](start, stop)
             except KeyError:
                 rrows = None
             except AttributeError:
@@ -872,9 +882,8 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
                 yield tuple(outrow)
 
 
-def intervaljoinvalues(left, right, lstart='start', lstop='stop', rstart='start',
-                       rstop='stop', lfacet=None, rfacet=None, proximity=0,
-                       valuespec=None, valuesfield='values'):
+def intervaljoinvalues(left, right, value, lstart='start', lstop='stop', rstart='start',
+                       rstop='stop', lfacet=None, rfacet=None, proximity=0):
     """
     Convenience function to join the left table with values from a specific 
     field in the right hand table.
@@ -885,17 +894,16 @@ def intervaljoinvalues(left, right, lstart='start', lstop='stop', rstart='start'
     
     assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     if lfacet is None:
-        lkp = intervallookup(right, start=rstart, stop=rstop, valuespec=valuespec, proximity=proximity)
-        f = lambda row: lkp[row[lstart]:row[lstop]]
+        lkp = intervallookup(right, start=rstart, stop=rstop, value=value, proximity=proximity)
+        f = lambda row: lkp.find(row[lstart], row[lstop])
     else:
-        lkp = facetintervallookup(right, rfacet, start=rstart, stop=rstop, valuespec=valuespec, proximity=proximity)
-        f = lambda row: lkp[row[lfacet]][row[lstart]:row[lstop]]
-    return addfield(left, valuesfield, f)
+        lkp = facetintervallookup(right, rfacet, start=rstart, stop=rstop, value=value, proximity=proximity)
+        f = lambda row: lkp[row[lfacet]].find(row[lstart], row[lstop])
+    return addfield(left, value, f)
         
         
 def intervalsubtract(left, right, lstart='start', lstop='stop', rstart='start',
-                     rstop='stop', lfacet=None, rfacet=None, proximity=0,
-                     missing=None):
+                     rstop='stop', lfacet=None, rfacet=None, proximity=0):
     """
     Subtract intervals in the right hand table from intervals in the left hand 
     table.
@@ -907,14 +915,14 @@ def intervalsubtract(left, right, lstart='start', lstop='stop', rstart='start',
     assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     return IntervalSubtractView(left, right, lstart=lstart, lstop=lstop,
                                 rstart=rstart, rstop=rstop, lfacet=lfacet,
-                                rfacet=rfacet, proximity=proximity, missing=missing)
+                                rfacet=rfacet, proximity=proximity)
 
 
 class IntervalSubtractView(RowContainer):
     
     def __init__(self, left, right, lstart='start', lstop='stop', 
                  rstart='start', rstop='stop', lfacet=None, rfacet=None,
-                 missing=None, proximity=0):
+                 proximity=0):
         self.left = left
         self.lstart = lstart
         self.lstop = lstop
@@ -923,17 +931,16 @@ class IntervalSubtractView(RowContainer):
         self.rstart = rstart
         self.rstop = rstop
         self.rfacet = rfacet
-        self.missing = missing
         self.proximity = proximity
 
     def __iter__(self):
         return iterintervalsubtract(self.left, self.right, self.lstart, self.lstop, 
-                                        self.rstart, self.rstop, self.lfacet, self.rfacet,
-                                        self.proximity, self.missing)
+                                    self.rstart, self.rstop, self.lfacet, self.rfacet,
+                                    self.proximity)
         
 
 def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
-                         proximity, missing):
+                         proximity):
 
     # create iterators and obtain fields
     lit = iter(left)
@@ -963,14 +970,15 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
     if rfacet is None:
         # build interval lookup for right table
         lookup = intervallookup(right, rstart, rstop, proximity=proximity)
+        find = lookup.find
         # main loop
         for lrow in lit:
             start, stop = getlcoords(lrow)
-            rrows = lookup[start:stop]
+            rrows = find(start, stop)
             if not rrows:
                 yield tuple(lrow)
             else:
-                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0)) # sort by start
+                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0))  # sort by start
                 for x, y in _subtract(start, stop, rivs):
                     out = list(lrow)
                     out[lstartidx] = x
@@ -979,7 +987,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
                 
     else:
         # build interval lookup for right table
-        lookup = facetintervallookup(right, key=rfacet, start=rstart, stop=rstop,
+        lookup = facetintervallookup(right, facet=rfacet, start=rstart, stop=rstop,
                                      proximity=proximity)   
         # getter for facet key values in left table
         getlkey = itemgetter(*asindices(lfields, lfacet))
@@ -988,7 +996,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
             lkey = getlkey(lrow)
             start, stop = getlcoords(lrow)
             try:
-                rrows = lookup[lkey][start:stop]
+                rrows = lookup[lkey].find(start, stop)
             except KeyError:
                 rrows = None
             except AttributeError:
@@ -996,7 +1004,7 @@ def iterintervalsubtract(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
             if not rrows:
                 yield tuple(lrow)
             else:
-                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0)) # sort by start
+                rivs = sorted([getrcoords(rrow) for rrow in rrows], key=itemgetter(0))  # sort by start
                 for x, y in _subtract(start, stop, rivs):
                     out = list(lrow)
                     out[lstartidx] = x
@@ -1040,7 +1048,7 @@ def _collapse(intervals):
     for start, stop in intervals:
         if span is None:
             span = _Interval(start, stop)
-        elif start <= span.stop and stop > span.stop:
+        elif start <= span.stop < stop:
             span = _Interval(span.start, stop)
         elif start > span.stop:
             yield span
@@ -1055,7 +1063,7 @@ def _subtract(start, stop, intervals):
     
     """
     remainder_start = start
-    sub_start = sub_stop = None
+    sub_stop = None
     for sub_start, sub_stop in _collapse(intervals):
         if remainder_start < sub_start:
             yield _Interval(remainder_start, sub_start)

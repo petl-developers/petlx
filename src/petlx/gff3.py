@@ -88,7 +88,7 @@ def gff3lookup(features, facet='seqid'):
     
     """
     
-    return facetintervallookup(features, key=facet, start='start', stop='end')
+    return facetintervallookup(features, facet=facet, start='start', stop='end')
 
 
 def gff3join(table, features, seqid='seqid', start='start', end='end', proximity=1):

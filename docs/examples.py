@@ -29,7 +29,7 @@ table = (('type', 'start', 'stop', 'value'),
 from petl import look
 from petlx.interval import facetintervallookup
 look(table)
-lkp = facetintervallookup(table, key='type', startfield='start', stopfield='stop')
+lkp = facetintervallookup(table, facet='type', startfield='start', stopfield='stop')
 lkp['apple'][1:2]
 lkp['apple'][2:4]
 lkp['apple'][2:5]
