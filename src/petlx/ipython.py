@@ -31,10 +31,10 @@ def display(tbl, *sliceargs, **kwargs):
                 
     Alternatively, using the fluent style::
     
-        In [0]: from petl.interactive import etl
+        In [0]: import petl.interactive as etl
                 import petlx.ipython
-                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
-                etl(tbl).display()
+                tbl = etl.wrap([['foo', 'bar'], ['a', 1], ['b', 2]])
+                tbl.display()
                 
     .. versionadded:: 0.5  
     
@@ -54,10 +54,10 @@ def displayall(tbl, **kwargs):
                 
     Alternatively, using the fluent style::
     
-        In [0]: from petl.interactive import etl
+        In [0]: import petl.interactive as etl
                 import petlx.ipython
-                tbl = [['foo', 'bar'], ['a', 1], ['b', 2]]
-                etl(tbl).displayall()
+                tbl = etl.wrap([['foo', 'bar'], ['a', 1], ['b', 2]])
+                tbl.displayall()
                 
     .. versionadded:: 0.5  
 
