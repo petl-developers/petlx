@@ -130,7 +130,8 @@ def toarray(table, dtype=None, count=-1, sample=1000):
             pass # leave dtype as-is
                          
         it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
-        sa = np.fromiter(it, dtype=dtype, count=count)
+        sa = np.fromiter(it, dtype=dtype, count=count)from petl.util import columns, iterpeek, RowContainer
+
         return sa
 
 
@@ -151,7 +152,7 @@ def torecarray(*args, **kwargs):
 
 def fromarray(a):
     """
-    Extract rows from a numpy structured array.
+    Extract a table from a numpy structured array.
     
     .. versionadded:: 0.4
     

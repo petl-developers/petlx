@@ -36,6 +36,7 @@ Modules
    xlsx
    sql
    array
+   dataframe
    ipython
    interval
    gff3
