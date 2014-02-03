@@ -5,6 +5,7 @@ release.txt
 requirements.txt
 setup.py
 docs/array.txt
+docs/dataframe.txt
 docs/gff3.txt
 docs/hdf5.txt
 docs/index.txt
@@ -25,6 +26,7 @@ docs/_build/html/_sources/vcf.txt
 docs/_build/html/_sources/xlsx.txt
 src/petlx/__init__.py
 src/petlx/array.py
+src/petlx/dataframe.py
 src/petlx/gff3.py
 src/petlx/hdf5.py
 src/petlx/integration.py
