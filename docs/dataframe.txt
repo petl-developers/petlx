@@ -1,4 +1,4 @@
-.. py:module:: petlx.pandas
+.. py:module:: petlx.dataframe
 
 DataFrames (pandas)
 ===================
