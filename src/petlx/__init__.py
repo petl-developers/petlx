@@ -5,4 +5,4 @@
 #0.11
 #0.12
 #0.12.1
-__version__ = VERSION = '0.14-SNAPSHOT'
+__version__ = VERSION = '0.14'
