@@ -130,7 +130,7 @@ def toarray(table, dtype=None, count=-1, sample=1000):
             pass # leave dtype as-is
                          
         it = (tuple(row) for row in it) # numpy is fussy about having tuples, need to make sure
-        sa = np.fromiter(it, dtype=dtype, count=count)from petl.util import columns, iterpeek, RowContainer
+        sa = np.fromiter(it, dtype=dtype, count=count)
 
         return sa
 
