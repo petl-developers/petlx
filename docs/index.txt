@@ -37,11 +37,11 @@ Modules
    sql
    array
    dataframe
+   hdf5
    ipython
    interval
-   gff3
-   hdf5
    tabix
+   gff3
    vcf
 
 Indices and tables
