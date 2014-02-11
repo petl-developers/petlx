@@ -9,6 +9,7 @@ from petl.transform import skipcomments, rowlenselect, convert, pushheader
 from urllib import unquote_plus
 from petl.util import HybridRow, RowContainer
 from petlx.interval import facetintervallookup, intervaljoin, intervalleftjoin
+from petlx.tabix import fromtabix
 import sys
 
 
@@ -33,33 +34,51 @@ def gff3_parse_attributes(attributes_string):
     return attributes
 
 
-def fromgff3(filename):
-    """
-    Extract feature rows from a GFF3 file. 
-    
-    .. versionadded:: 0.2
+def convertgff3(tbl):
 
-    """
-    
-    # parse file as tab-delimited
-    t0 = fromtsv(filename)
-    
     # push header
-    t1 = pushheader(t0, ('seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'))
+    t1 = pushheader(tbl, ('seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'))
 
     # skip comments
     t2 = skipcomments(t1, '#')
-    
+
     # ignore any row not 9 values long (e.g., trailing fasta)
     t3 = rowlenselect(t2, 9)
-    
+
     # parse attributes into a dict
     t4 = convert(t3, 'attributes', gff3_parse_attributes)
-    
+
     # parse coordinates
     t5 = convert(t4, ('start', 'end'), int)
 
     return HybridRowView(t5)
+
+
+def fromgff3(filename, region=None):
+    """
+    Extract feature rows from a GFF3 file. 
+
+    .. versionadded:: 0.2
+
+    .. versionchanged:: 0.15
+
+    A region query string of the form '[seqid]' or '[seqid]:[start]-[end]' may be given
+    for the ``region`` argument. If given, requires the GFF3 file to be bgzipped and
+    tabix indexed.
+
+    """
+
+    if region is None:
+
+        # parse file as tab-delimited
+        tbl = fromtsv(filename)
+
+    else:
+
+        # extract via tabix
+        tbl = fromtabix(filename, region=region)
+
+    return convertgff3(tbl)
 
 
 # TODO move this to petl.base?

@@ -4,7 +4,7 @@ Tests for the gff3 module.
 """
 from tempfile import NamedTemporaryFile
 from nose.tools import eq_
-from petl.util import header
+from petl.util import header, nrows
 
 from petlx.gff3 import fromgff3, gff3lookup, gff3join, gff3_parse_attributes,\
     gff3leftjoin
@@ -13,12 +13,12 @@ from petl.testutils import ieq
 import petl.fluent as etl
 
 
-plasmodb_gff3_file = 'fixture/sample.gff'
+sample_gff3_filename = 'fixture/sample.gff'
 
 
 def test_fromgff3():
     
-    features = fromgff3(plasmodb_gff3_file)
+    features = fromgff3(sample_gff3_filename)
     
     expect_header = ('seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes')
     eq_(expect_header, header(features))
@@ -53,7 +53,7 @@ def test_fromgff3():
     
 def test_fromgff3_trailing_semicolon():
     
-    features = fromgff3(plasmodb_gff3_file)
+    features = fromgff3(sample_gff3_filename)
     
     #apidb|MAL2    ApiDB    supercontig    1    947102    .    +    .    ID=apidb|MAL2;Name=MAL2;description=MAL2;size=947102;web_id=MAL2;molecule_type=dsDNA;organism_name=Plasmodium falciparum;translation_table=11;topology=linear;localization=nuclear;Dbxref=ApiDB_PlasmoDB:MAL2,GenBank:NC_000910,taxon:36329;
     row = list(features)[2]
@@ -72,7 +72,7 @@ def test_fromgff3_trailing_semicolon():
     
 def test_gff3lookup():
     
-    features = fromgff3(plasmodb_gff3_file)
+    features = fromgff3(sample_gff3_filename)
     genes = selecteq(features, 'type', 'gene')
     lkp = gff3lookup(genes)
     
@@ -95,7 +95,7 @@ def test_gff3join():
     snps = (('chr', 'pos'),
             ('apidb|MAL1', 56911),
             ('apidb|MAL1', 56915))
-    features = fromgff3(plasmodb_gff3_file)
+    features = fromgff3(sample_gff3_filename)
     genes = selecteq(features, 'type', 'gene')
     actual = gff3join(snps, genes, seqid='chr', start='pos', end='pos')
     expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
@@ -110,7 +110,7 @@ def test_gff3leftjoin():
     snps = (('chr', 'pos'),
             ('apidb|MAL1', 56911),
             ('apidb|MAL1', 56915))
-    features = fromgff3(plasmodb_gff3_file)
+    features = fromgff3(sample_gff3_filename)
     genes = selecteq(features, 'type', 'gene')
     actual = gff3leftjoin(snps, genes, seqid='chr', start='pos', end='pos')
     expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
@@ -125,7 +125,7 @@ def test_integration():
     snps = etl.wrap((('chr', 'pos'),
                      ('apidb|MAL1', 56911),
                      ('apidb|MAL1', 56915)))
-    features = etl.fromgff3(plasmodb_gff3_file)
+    features = etl.fromgff3(sample_gff3_filename)
     genes = features.selecteq('type', 'gene')
     actual = snps.gff3join(genes, seqid='chr', start='pos', end='pos')
     expect = (('chr', 'pos', 'seqid', 'source', 'type', 'start', 'end', 'score', 'strand', 'phase', 'attributes'),
@@ -133,5 +133,9 @@ def test_integration():
     ieq(expect, actual)
     ieq(expect, actual)
     
-    
-    
+
+def test_fromgff3_region():
+    tbl_features = fromgff3('fixture/sample.sorted.gff.gz', region='apidb|MAL5')
+    eq_(7, nrows(tbl_features))
+    tbl_features = fromgff3('fixture/sample.sorted.gff.gz', region='apidb|MAL5:1289593-1289595')
+    eq_(4, nrows(tbl_features))
