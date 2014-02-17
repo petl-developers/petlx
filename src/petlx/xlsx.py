@@ -16,7 +16,7 @@ https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
 """
 
 
-def fromxlsx(filename, sheetname):
+def fromxlsx(filename, sheet=None):
     """
     Extract a table from a sheet in an Excel (.xlsx) file.
     
@@ -24,17 +24,21 @@ def fromxlsx(filename, sheetname):
 
     The package openpyxl is required. Instructions for installation can be found at 
     https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try ``pip install openpyxl``.
-        
+
+    .. versionchanged:: 0.15
+
+    The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default.
+
     """
     
-    return XLSXView(filename, sheetname)
+    return XLSXView(filename, sheet)
 
 
 class XLSXView(petl.util.RowContainer):
     
-    def __init__(self, filename, sheetname='Sheet1'):
+    def __init__(self, filename, sheet=None):
         self.filename = filename
-        self.sheetname = sheetname
+        self.sheet = sheet
 
     def __iter__(self):
         try:
@@ -42,7 +46,12 @@ class XLSXView(petl.util.RowContainer):
         except ImportError as e:
             raise UnsatisfiedDependency(e, dep_message)
         wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
-        ws = wb.get_sheet_by_name(name=self.sheetname)
+        if self.sheet is None:
+            ws = wb.get_sheet_by_name(wb.get_sheet_names()[0])
+        elif isinstance(self.sheet, int):
+            ws = wb.get_sheet_by_name(wb.get_sheet_names()[self.sheet])
+        else:
+            ws = wb.get_sheet_by_name(str(self.sheet))
         return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
                 
 
