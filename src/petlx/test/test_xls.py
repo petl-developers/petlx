@@ -27,4 +27,14 @@ def test_integration():
     ieq(expect, tbl)
 
 
+def test_fromxls_nosheet():
+    tbl = fromxls('fixture/test.xls')
+    expect = (('foo', 'bar'),
+              ('A', 1),
+              ('B', 2),
+              ('C', 2),
+              (u'é', xlrd.xldate.xldate_from_date_tuple((2012, 1, 1), 0)))
+    ieq(expect, tbl)
+
+
 

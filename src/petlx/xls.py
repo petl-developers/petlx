@@ -15,23 +15,23 @@ The package xlrd is required. Try pip install xlrd.
 """
 
 
-def fromxls(filename, sheetname):
+def fromxls(filename, sheet=None):
     """
     Extract a table from a sheet in an Excel (.xls) file.
     
-    N.B., the sheet name is case sensitive, so watch out for, e.g., 'Sheet1'.
+    N.B., the sheet name is case sensitive.
 
     The package xlrd is required. Try ``pip install xlrd``.
         
     """
     
-    return XLSView(filename, sheetname)
+    return XLSView(filename, sheet)
 
 class XLSView(petl.util.RowContainer):
     
-    def __init__(self, filename, sheetname='Sheet1'):
+    def __init__(self, filename, sheet=None):
         self.filename = filename
-        self.sheetname = sheetname
+        self.sheet = sheet
 
     def __iter__(self):
         try:
@@ -40,7 +40,12 @@ class XLSView(petl.util.RowContainer):
             raise UnsatisfiedDependency(e, dep_message)
 
         wb = xlrd.open_workbook(filename=self.filename)
-        ws = wb.sheet_by_name(self.sheetname)
+        if self.sheet is None:
+            ws = wb.sheet_by_index(0)
+        elif isinstance(self.sheet, int):
+            ws = wb.sheet_by_index(self.sheet)
+        else:
+            ws = wb.sheet_by_name(str(self.sheet))
         return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
                 
 
