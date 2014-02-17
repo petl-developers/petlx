@@ -1,4 +1,4 @@
-.. py:module:: petlx.xlsx
+.. py:module:: petlx.xls
 
 Excel .xls (xlrd)
 =================
