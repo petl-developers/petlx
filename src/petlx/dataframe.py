@@ -18,7 +18,7 @@ python-pandas.
 """
 
 
-def todf(table, index=None, exclude=None, columns=None, coerce_float=False, nrows=None):
+def todataframe(table, index=None, exclude=None, columns=None, coerce_float=False, nrows=None):
     """
     Convenience function to load data from the given `table` into a pandas DataFrame.
 
@@ -39,7 +39,11 @@ def todf(table, index=None, exclude=None, columns=None, coerce_float=False, nrow
                                          nrows=nrows)
 
 
-def fromdf(df, include_index=False):
+# be backwards-compatible
+todf = todataframe
+
+
+def fromdataframe(df, include_index=False):
     """
     Extract a table from a pandas DataFrame.
 
@@ -48,6 +52,10 @@ def fromdf(df, include_index=False):
     """
 
     return DataFrameContainer(df, include_index=include_index)
+
+
+# be backwards-compatible
+fromdf = fromdataframe
 
 
 class DataFrameContainer(RowContainer):
