@@ -33,6 +33,7 @@ Modules
 .. toctree::
    :maxdepth: 2
 
+   xls
    xlsx
    sql
    array

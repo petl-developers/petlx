@@ -1,0 +1,7 @@
+.. py:module:: petlx.xlsx
+
+Excel .xls (xlrd)
+=================
+
+.. autofunction:: fromxls
+
