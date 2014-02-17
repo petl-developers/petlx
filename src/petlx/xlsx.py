@@ -27,8 +27,11 @@ def fromxlsx(filename, sheet=None, range=None, **kwargs):
 
     .. versionchanged:: 0.15
 
-    The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default. Any other
-    keyword arguments are passed through to :func:`openpyxl.load_workbook()`.
+    The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default.
+
+    The ``range`` argument can be used to provide a range string specifying a range of cells to extract.
+
+    Any other keyword arguments are passed through to :func:`openpyxl.load_workbook()`.
 
     """
     

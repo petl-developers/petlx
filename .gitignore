@@ -9,3 +9,4 @@ build
 MANIFEST
 dist
 .idea
+tmp
