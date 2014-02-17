@@ -15,6 +15,7 @@ def test_fromxls():
               ('C', 2),
               (u'é', xlrd.xldate.xldate_from_date_tuple((2012, 1, 1), 0)))
     ieq(expect, tbl)
+    ieq(expect, tbl)
 
 
 def test_integration():
@@ -25,6 +26,7 @@ def test_integration():
               ('C', 2),
               (u'é', xlrd.xldate.xldate_from_date_tuple((2012, 1, 1), 0)))
     ieq(expect, tbl)
+    ieq(expect, tbl)
 
 
 def test_fromxls_nosheet():
@@ -34,6 +36,7 @@ def test_fromxls_nosheet():
               ('B', 2),
               ('C', 2),
               (u'é', xlrd.xldate.xldate_from_date_tuple((2012, 1, 1), 0)))
+    ieq(expect, tbl)
     ieq(expect, tbl)
 
 

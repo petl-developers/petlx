@@ -45,6 +45,7 @@ class XLSXView(petl.util.RowContainer):
             import openpyxl
         except ImportError as e:
             raise UnsatisfiedDependency(e, dep_message)
+
         wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
         if self.sheet is None:
             ws = wb.get_sheet_by_name(wb.get_sheet_names()[0])
@@ -53,7 +54,25 @@ class XLSXView(petl.util.RowContainer):
         else:
             ws = wb.get_sheet_by_name(str(self.sheet))
         return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
-                
+
+
+def toxlsx(tbl, filename, sheet=None, encoding='utf-8'):
+    """
+    Write a table to a new Excel (.xlsx) file.
+    
+    .. versionadded:: 0.15
+
+    """
+    try:
+        import openpyxl
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+    wb = openpyxl.Workbook(optimized_write=True, encoding=encoding)
+    ws = wb.create_sheet(title=sheet)
+    for row in tbl:
+        ws.append(row)
+    wb.save(filename)
+
 
 import sys
 from petlx.integration import integrate
