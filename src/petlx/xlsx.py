@@ -16,7 +16,7 @@ https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
 """
 
 
-def fromxlsx(filename, sheet=None):
+def fromxlsx(filename, sheet=None, **kwargs):
     """
     Extract a table from a sheet in an Excel (.xlsx) file.
     
@@ -27,18 +27,20 @@ def fromxlsx(filename, sheet=None):
 
     .. versionchanged:: 0.15
 
-    The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default.
+    The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default. Any other
+    keyword arguments are passed through to :func:`openpyxl.load_workbook()`.
 
     """
     
-    return XLSXView(filename, sheet)
+    return XLSXView(filename, sheet, **kwargs)
 
 
 class XLSXView(petl.util.RowContainer):
     
-    def __init__(self, filename, sheet=None):
+    def __init__(self, filename, sheet=None, **kwargs):
         self.filename = filename
         self.sheet = sheet
+        self.kwargs = kwargs
 
     def __iter__(self):
         try:
@@ -46,7 +48,7 @@ class XLSXView(petl.util.RowContainer):
         except ImportError as e:
             raise UnsatisfiedDependency(e, dep_message)
 
-        wb = openpyxl.reader.excel.load_workbook(filename=self.filename, use_iterators=True)
+        wb = openpyxl.load_workbook(filename=self.filename, use_iterators=True, **self.kwargs)
         if self.sheet is None:
             ws = wb.get_sheet_by_name(wb.get_sheet_names()[0])
         elif isinstance(self.sheet, int):
