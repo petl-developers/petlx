@@ -5,3 +5,5 @@ Excel .xls (xlrd)
 
 .. autofunction:: fromxls
 
+.. autofunction:: toxls
+

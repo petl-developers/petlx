@@ -15,6 +15,11 @@ The package xlrd is required. Try pip install xlrd.
 """
 
 
+dep_message_write = """
+The package xlwt is required. Try pip install xlwt.
+"""
+
+
 def fromxls(filename, sheet=None):
     """
     Extract a table from a sheet in an Excel (.xls) file.
@@ -26,6 +31,7 @@ def fromxls(filename, sheet=None):
     """
     
     return XLSView(filename, sheet)
+
 
 class XLSView(petl.util.RowContainer):
     
@@ -48,6 +54,26 @@ class XLSView(petl.util.RowContainer):
             ws = wb.sheet_by_name(str(self.sheet))
         return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
                 
+
+def toxls(tbl, filename, sheet, encoding='ascii', style_compression=0):
+    """
+    Write a table to a new Excel (.xls) file.
+
+    .. versionadded:: 0.15
+
+    """
+
+    try:
+        import xlwt
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message_write)
+    wb = xlwt.Workbook(encoding=encoding, style_compression=style_compression)
+    ws = wb.add_sheet(sheet)
+    for r, row in enumerate(tbl):
+        for c, label in enumerate(row):
+            ws.write(r, c, label=label)
+    wb.save(filename)
+
 
 import sys
 from petlx.integration import integrate

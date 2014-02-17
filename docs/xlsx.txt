@@ -5,3 +5,4 @@ Excel .xlsx (openpyxl)
 
 .. autofunction:: fromxlsx
 
+.. autofunction:: toxlsx

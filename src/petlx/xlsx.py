@@ -59,10 +59,11 @@ class XLSXView(petl.util.RowContainer):
 def toxlsx(tbl, filename, sheet=None, encoding='utf-8'):
     """
     Write a table to a new Excel (.xlsx) file.
-    
+
     .. versionadded:: 0.15
 
     """
+
     try:
         import openpyxl
     except ImportError as e:
