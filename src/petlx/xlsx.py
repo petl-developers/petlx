@@ -16,7 +16,7 @@ https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try pip install openpyxl.
 """
 
 
-def fromxlsx(filename, sheet=None, **kwargs):
+def fromxlsx(filename, sheet=None, range=None, **kwargs):
     """
     Extract a table from a sheet in an Excel (.xlsx) file.
     
@@ -32,14 +32,15 @@ def fromxlsx(filename, sheet=None, **kwargs):
 
     """
     
-    return XLSXView(filename, sheet, **kwargs)
+    return XLSXView(filename, sheet=sheet, range=range, **kwargs)
 
 
 class XLSXView(petl.util.RowContainer):
     
-    def __init__(self, filename, sheet=None, **kwargs):
+    def __init__(self, filename, sheet=None, range=None, **kwargs):
         self.filename = filename
         self.sheet = sheet
+        self.range = range
         self.kwargs = kwargs
 
     def __iter__(self):
@@ -48,14 +49,19 @@ class XLSXView(petl.util.RowContainer):
         except ImportError as e:
             raise UnsatisfiedDependency(e, dep_message)
 
-        wb = openpyxl.load_workbook(filename=self.filename, use_iterators=True, **self.kwargs)
+        use_iterators = self.range is None
+        wb = openpyxl.load_workbook(filename=self.filename, use_iterators=use_iterators, **self.kwargs)
         if self.sheet is None:
             ws = wb.get_sheet_by_name(wb.get_sheet_names()[0])
         elif isinstance(self.sheet, int):
             ws = wb.get_sheet_by_name(wb.get_sheet_names()[self.sheet])
         else:
             ws = wb.get_sheet_by_name(str(self.sheet))
-        return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
+
+        if self.range is not None:
+            return (tuple(cell.value for cell in row) for row in ws.range(self.range))
+        else:
+            return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
 
 
 def toxlsx(tbl, filename, sheet=None, encoding='utf-8'):

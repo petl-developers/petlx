@@ -40,6 +40,17 @@ def test_fromxlsx_nosheet():
     ieq(expect, tbl)
 
 
+def test_fromxlsx_range():
+    tbl = fromxlsx('fixture/test.xlsx', 'Sheet2', range='B2:C6')
+    expect = (('foo', 'bar'),
+              ('A', 1),
+              ('B', 2),
+              ('C', 2),
+              (u'é', datetime(2012, 1, 1)))
+    ieq(expect, tbl)
+    ieq(expect, tbl)
+
+
 def test_toxlsx():
     tbl = (('foo', 'bar'),
            ('A', 1),
