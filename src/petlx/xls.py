@@ -11,7 +11,7 @@ from petlx.util import UnsatisfiedDependency
 
 
 dep_message = """
-The package xlrd is required. pip install xlrd.
+The package xlrd is required. Try pip install xlrd.
 """
 
 
@@ -41,7 +41,7 @@ class XLSView(petl.util.RowContainer):
 
         wb = xlrd.open_workbook(filename=self.filename)
         ws = wb.sheet_by_name(self.sheetname)
-        return (ws.row_values(rownum) for rownum in range(0,ws.nrows))
+        return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
                 
 
 import sys
