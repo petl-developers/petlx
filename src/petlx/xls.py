@@ -30,8 +30,6 @@ def fromxls(filename, sheet=None, use_view=True):
     
     N.B., the sheet name is case sensitive.
 
-    The package xlrd is required. Try ``pip install xlrd``.
-
     .. versionadded:: 0.15
 
     """

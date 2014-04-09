@@ -22,9 +22,6 @@ def fromxlsx(filename, sheet=None, range=None, **kwargs):
     
     N.B., the sheet name is case sensitive, so watch out for, e.g., 'Sheet1'.
 
-    The package openpyxl is required. Instructions for installation can be found at 
-    https://bitbucket.org/ericgazoni/openpyxl/wiki/Home or try ``pip install openpyxl``.
-
     .. versionchanged:: 0.15
 
     The ``sheet`` argument can be omitted, in which case the first sheet in the workbook is used by default.
