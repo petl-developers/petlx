@@ -14,6 +14,7 @@ docs/ipython.txt
 docs/sql.txt
 docs/tabix.txt
 docs/vcf.txt
+docs/xls.txt
 docs/xlsx.txt
 docs/_build/html/_sources/array.txt
 docs/_build/html/_sources/gff3.txt
@@ -37,4 +38,5 @@ src/petlx/tabix.py
 src/petlx/testutils.py
 src/petlx/util.py
 src/petlx/vcf.py
+src/petlx/xls.py
 src/petlx/xlsx.py
