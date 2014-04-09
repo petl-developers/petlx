@@ -24,7 +24,7 @@ The package xlutils is required. Try pip install xlrd xlutils.
 """
 
 
-def fromxls(filename, sheet=None):
+def fromxls(filename, sheet=None, use_view=True):
     """
     Extract a table from a sheet in an Excel (.xls) file.
     
@@ -34,42 +34,47 @@ def fromxls(filename, sheet=None):
         
     """
     
-    return XLSView(filename, sheet)
+    return XLSView(filename, sheet=sheet, use_view=use_view)
 
 
 class XLSView(petl.util.RowContainer):
     
-    def __init__(self, filename, sheet=None):
+    def __init__(self, filename, sheet=None, use_view=True):
         self.filename = filename
         self.sheet = sheet
+        self.use_view = use_view
 
     def __iter__(self):
-        # try:
-        #     import xlrd
-        # except ImportError as e:
-        #     raise UnsatisfiedDependency(e, dep_message)
-        #
-        # wb = xlrd.open_workbook(filename=self.filename)
-        # if self.sheet is None:
-        #     ws = wb.sheet_by_index(0)
-        # elif isinstance(self.sheet, int):
-        #     ws = wb.sheet_by_index(self.sheet)
-        # else:
-        #     ws = wb.sheet_by_name(str(self.sheet))
-        # return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
 
         # prefer implementation using xlutils.view as dates are automatically converted
-        try:
-            import xlutils.view
-        except ImportError as e:
-            raise UnsatisfiedDependency(e, dep_message_utils)
+        if self.use_view:
+            try:
+                import xlutils.view
+            except ImportError as e:
+                raise UnsatisfiedDependency(e, dep_message_utils)
+            else:
+                wb = xlutils.view.View(self.filename)
+                if self.sheet is None:
+                    ws = wb[0]
+                else:
+                    ws = wb[self.sheet]
+                return (tuple(row) for row in ws)
 
-        wb = xlutils.view.View(self.filename)
-        if self.sheet is None:
-            ws = wb[0]
         else:
-            ws = wb[self.sheet]
-        return (tuple(row) for row in ws)
+            try:
+                import xlrd
+            except ImportError as e:
+                raise UnsatisfiedDependency(e, dep_message)
+            else:
+                wb = xlrd.open_workbook(filename=self.filename)
+                if self.sheet is None:
+                    ws = wb.sheet_by_index(0)
+                elif isinstance(self.sheet, int):
+                    ws = wb.sheet_by_index(self.sheet)
+                else:
+                    ws = wb.sheet_by_name(str(self.sheet))
+                return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
+
 
 
 def toxls(tbl, filename, sheet, encoding='ascii', style_compression=0, styles=None):

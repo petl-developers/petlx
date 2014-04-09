@@ -19,6 +19,17 @@ def test_fromxls():
     ieq(expect, tbl)
 
 
+def test_fromxls_use_view():
+    tbl = fromxls('fixture/test.xls', 'Sheet1', use_view=False)
+    expect = (('foo', 'bar'),
+              ('A', 1),
+              ('B', 2),
+              ('C', 2),
+              (u'é', 40909.0))
+    ieq(expect, tbl)
+    ieq(expect, tbl)
+
+
 def test_integration():
     tbl = etl.fromxls('fixture/test.xls', 'Sheet1')
     expect = (('foo', 'bar'),
