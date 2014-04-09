@@ -31,7 +31,9 @@ def fromxls(filename, sheet=None, use_view=True):
     N.B., the sheet name is case sensitive.
 
     The package xlrd is required. Try ``pip install xlrd``.
-        
+
+    .. versionadded:: 0.15
+
     """
     
     return XLSView(filename, sheet=sheet, use_view=use_view)
@@ -66,14 +68,14 @@ class XLSView(petl.util.RowContainer):
             except ImportError as e:
                 raise UnsatisfiedDependency(e, dep_message)
             else:
-                wb = xlrd.open_workbook(filename=self.filename)
-                if self.sheet is None:
-                    ws = wb.sheet_by_index(0)
-                elif isinstance(self.sheet, int):
-                    ws = wb.sheet_by_index(self.sheet)
-                else:
-                    ws = wb.sheet_by_name(str(self.sheet))
-                return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
+                with xlrd.open_workbook(filename=self.filename, on_demand=True) as wb:
+                    if self.sheet is None:
+                        ws = wb.sheet_by_index(0)
+                    elif isinstance(self.sheet, int):
+                        ws = wb.sheet_by_index(self.sheet)
+                    else:
+                        ws = wb.sheet_by_name(str(self.sheet))
+                    return (tuple(ws.row_values(rownum)) for rownum in range(ws.nrows))
 
 
 
@@ -89,31 +91,32 @@ def toxls(tbl, filename, sheet, encoding='ascii', style_compression=0, styles=No
         import xlwt
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message_write)
-    wb = xlwt.Workbook(encoding=encoding, style_compression=style_compression)
-    ws = wb.add_sheet(sheet)
-
-    if styles is None:
-        # simple version, don't worry about styles
-        for r, row in enumerate(tbl):
-            for c, label in enumerate(row):
-                ws.write(r, c, label=label)
     else:
-        # handle styles
-        it = iter(tbl)
-        fields = it.next()
-        for c, label in enumerate(fields):
-            ws.write(0, c, label=label)
-            if label not in styles:
-                styles[label] = xlwt.Style.default_style
-        # convert to list for easy zipping
-        styles = [styles[f] for f in fields]
-        for r, row in enumerate(it):
-            for c, (label, style) in enumerate(izip_longest(row, styles, fillvalue=None)):
-                if style is None:
-                    style = xlwt.Style.default_style
-                ws.write(r+1, c, label=label, style=style)
+        wb = xlwt.Workbook(encoding=encoding, style_compression=style_compression)
+        ws = wb.add_sheet(sheet)
 
-    wb.save(filename)
+        if styles is None:
+            # simple version, don't worry about styles
+            for r, row in enumerate(tbl):
+                for c, label in enumerate(row):
+                    ws.write(r, c, label=label)
+        else:
+            # handle styles
+            it = iter(tbl)
+            fields = it.next()
+            for c, label in enumerate(fields):
+                ws.write(0, c, label=label)
+                if label not in styles:
+                    styles[label] = xlwt.Style.default_style
+            # convert to list for easy zipping
+            styles = [styles[f] for f in fields]
+            for r, row in enumerate(it):
+                for c, (label, style) in enumerate(izip_longest(row, styles, fillvalue=None)):
+                    if style is None:
+                        style = xlwt.Style.default_style
+                    ws.write(r+1, c, label=label, style=style)
+
+        wb.save(filename)
 
 
 import sys
