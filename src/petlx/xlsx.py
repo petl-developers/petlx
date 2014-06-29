@@ -50,7 +50,8 @@ class XLSXView(petl.util.RowContainer):
             raise UnsatisfiedDependency(e, dep_message)
 
         use_iterators = self.range is None
-        wb = openpyxl.load_workbook(filename=self.filename, use_iterators=use_iterators, **self.kwargs)
+        wb = openpyxl.load_workbook(filename=self.filename,
+                                    use_iterators=use_iterators, **self.kwargs)
         if self.sheet is None:
             ws = wb.get_sheet_by_name(wb.get_sheet_names()[0])
         elif isinstance(self.sheet, int):
@@ -59,9 +60,11 @@ class XLSXView(petl.util.RowContainer):
             ws = wb.get_sheet_by_name(str(self.sheet))
 
         if self.range is not None:
-            return (tuple(cell.value for cell in row) for row in ws.range(self.range))
+            return (tuple(cell.value for cell in row)
+                    for row in ws.range(self.range))
         else:
-            return (tuple(cell.internal_value for cell in row) for row in ws.iter_rows())
+            return (tuple(cell.value for cell in row)
+                    for row in ws.iter_rows())
 
 
 def toxlsx(tbl, filename, sheet=None, encoding='utf-8'):
