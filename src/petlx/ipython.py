@@ -10,18 +10,7 @@ ipython-notebook.
 """
 
 
-def _display(tbl, sliceargs, **kwargs):
-    try:
-        from IPython.core.display import display_html
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    if sliceargs is not None:
-        tbl = rowslice(tbl, *sliceargs)
-    html = repr_html(tbl, **kwargs)
-    display_html(html, raw=True)
-
-
-def display(tbl, *sliceargs, **kwargs):
+def display(tbl, limit=None, **kwargs):
     """
     Display a table inline within an iPython notebook. E.g.::
     
@@ -39,9 +28,14 @@ def display(tbl, *sliceargs, **kwargs):
     .. versionadded:: 0.5  
     
     """
-    if not sliceargs:
-        sliceargs = (10,)  # so you don't accidentally crash the browser with too much data
-    _display(tbl, sliceargs, **kwargs)
+
+    try:
+        from IPython.core.display import display_html
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+    else:
+        html = repr_html(tbl, limit=limit, **kwargs)
+        display_html(html, raw=True)
 
 
 def displayall(tbl, **kwargs):
@@ -62,7 +56,8 @@ def displayall(tbl, **kwargs):
     .. versionadded:: 0.5  
 
     """
-    _display(tbl, None, **kwargs)
+
+    display(tbl, limit=0, **kwargs)
 
 
 import sys
