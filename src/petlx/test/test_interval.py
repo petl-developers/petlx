@@ -3,13 +3,17 @@ Tests for the petlx.intervals module.
 
 """
 
-from petl.testutils import ieq, assertequal
+
+from nose.tools import eq_
+
+
+from petl.testutils import ieq
 from petl.util import DuplicateKeyError, look
 import petl.fluent as etl
-
-from petlx.interval import intervallookup, intervallookupone, facetintervallookup, \
-    facetintervallookupone, intervaljoin, intervalleftjoin, \
-    intervaljoinvalues, intervalsubtract, collapsedintervals, _Interval
+from petlx.interval import intervallookup, intervallookupone, \
+    facetintervallookup, facetintervallookupone, intervaljoin, \
+    intervalleftjoin, intervaljoinvalues, intervalsubtract, collapsedintervals,\
+    _Interval
 
 
 def test_intervallookup():
@@ -117,7 +121,7 @@ def test_intervallookupone():
     
     actual = lkp.find(1, 2)
     expect = 'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     try:
         actual = lkp.find(2, 4)
@@ -149,27 +153,27 @@ def test_intervallookupone():
     
     actual = lkp.find(8, 9)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(9, 14)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(19, 140)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(1)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(2)
     expect =  'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(4)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     try:
         actual = lkp.find(5)
@@ -180,7 +184,7 @@ def test_intervallookupone():
     
     actual = lkp.find(8)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     
 def test_intervallookupone_2():
@@ -194,43 +198,43 @@ def test_intervallookupone_2():
     
     actual = lkp.find(1, 2)
     expect = 'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(2, 4)
     expect = 'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(2, 5)
     expect = 'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(4, 5)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(5, 7)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(8, 9)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(9, 14)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(19, 140)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(1)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(2)
     expect =  'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp.find(4)
     expect = 'bar'
@@ -310,7 +314,7 @@ def test_facetintervallookupone():
     
     actual = lkp['apple'].find(1, 2)
     expect = 'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     try:
         actual = lkp['apple'].find(2, 4)
@@ -328,63 +332,63 @@ def test_facetintervallookupone():
     
     actual = lkp['apple'].find(4, 5)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(4, 5)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(5, 7)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
 
     actual = lkp['orange'].find(5, 7)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(8, 9)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(8, 9)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(9, 14)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(19, 140)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(1)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(2)
     expect =  'foo'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(4)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(5)
     expect = 'bar'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(5)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['apple'].find(8)
     expect = None
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     actual = lkp['orange'].find(8)
     expect = 'baz'
-    assertequal(expect, actual)
+    eq_(expect, actual)
     
     
 def test_intervaljoin():
