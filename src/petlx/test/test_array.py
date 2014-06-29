@@ -172,3 +172,27 @@ def test_integration():
     ieq(t, u)
 
 
+def test_valuesarray_no_dtype():
+
+    t = [('foo', 'bar', 'baz'),
+         ('apples', 1, 2.5),
+         ('oranges', 3, 4.4),
+         ('pears', 7, .1)]
+
+    expect = np.array([1, 3, 7])
+    actual = etl.wrap(t).values('bar').array()
+    eq_(expect.dtype, actual.dtype)
+    assert np.all(expect == actual)
+
+
+def test_valuesarray_explicit_dtype():
+
+    t = [('foo', 'bar', 'baz'),
+         ('apples', 1, 2.5),
+         ('oranges', 3, 4.4),
+         ('pears', 7, .1)]
+
+    expect = np.array([1, 3, 7], dtype='i2')
+    actual = etl.wrap(t).values('bar').array(dtype='i2')
+    eq_(expect.dtype, actual.dtype)
+    assert np.all(expect == actual)
