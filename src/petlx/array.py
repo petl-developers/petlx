@@ -23,14 +23,13 @@ def guessdtype(table):
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
     else:
-        # get numpy to infer dtypes for each field individually
-        fields, table = iterpeek(table, 1)
-        cols = columns(table)
-        dtype = []
-        for f in fields:
-            a = np.array(cols[f]) # load into 1D array to get numpy to infer a dtype for the column
-            dtype.append((f, a.dtype))
-        return np.dtype(dtype)
+        # get numpy to infer dtype
+        it = iter(table)
+        fields = it.next()
+        rows = tuple(it)
+        dtype = np.rec.array(rows).dtype
+        dtype.names = fields
+        return dtype
 
 
 def toarray(table, dtype=None, count=-1, sample=1000):
