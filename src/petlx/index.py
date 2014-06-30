@@ -17,11 +17,53 @@ The package whoosh is required. Try pip install whoosh.
 
 def fromindex(index_or_dirname, indexname=None, docnum_field=None):
     """
-    Extract all documents from a Whoosh index.
+    Extract all documents from a Whoosh index. E.g.::
 
-
+        >>> # set up an index and load some documents via the Whoosh API
+        ... from whoosh.index import create_in
+        >>> from whoosh.fields import *
+        >>> schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT)
+        >>> index = create_in('tmp/example', schema)
+        >>> writer = index.writer()
+        >>> writer.add_document(title=u"First document", path=u"/a",
+        ...                     content=u"This is the first document we've added!")
+        >>> writer.add_document(title=u"Second document", path=u"/b",
+        ...                     content=u"The second one is even more interesting!")
+        >>> writer.commit()
+        >>> # extract documents as a table
+        ... from petl import look
+        >>> from petlx.index import fromindex
+        >>> tbl = fromindex('tmp/example')
+        >>> look(tbl)
+        +--------+--------------------+
+        | 'path' | 'title'            |
+        +========+====================+
+        | u'/a'  | u'First document'  |
+        +--------+--------------------+
+        | u'/b'  | u'Second document' |
+        +--------+--------------------+
 
     .. versionadded:: 0.16
+
+    Parameters
+    ----------
+
+    index_or_dirname
+        Either an instance of `whoosh.index.Index` or a string containing the
+        directory path where the index is stored.
+    indexname
+        String containing the name of the index, if multiple indexes are stored
+        in the same directory.
+    docnum_field
+        If not None, an extra field will be added to the output table containing
+        the internal document number stored in the index. The name of the field
+        will be the value of this argument.
+
+    Returns
+    -------
+
+        A table-like object (row container).
+
     """
 
     return IndexContainer(index_or_dirname,
@@ -55,10 +97,12 @@ def iterindex(index_or_dirname, indexname, docnum_field):
                                           indexname=indexname,
                                           readonly=True)
             needs_closing = True
-        else:
-            # TODO check it quacks like an index
+        elif isinstance(index_or_dirname, whoosh.index.Index):
             index = index_or_dirname
             needs_closing = False
+        else:
+            raise Exception('expected string or index, found %r'
+                            % index_or_dirname)
 
         try:
 
@@ -96,9 +140,62 @@ def iterindex(index_or_dirname, indexname, docnum_field):
 def toindex(tbl, index_or_dirname, schema=None, indexname=None, merge=False,
             optimize=False):
     """
-    TODO
+    Load all rows from `tbl` into a Whoosh index. N.B., this will clear any
+    existing data in the index before loading. E.g.::
+
+        >>> from petl import look
+        >>> from petlx.index import toindex, fromindex
+        >>> # here is the table we want to load into an index
+        ... look(tbl)
+        +--------+------+------+-------+--------------------------------------------------+
+        | 'f0'   | 'f1' | 'f2' | 'f3'  | 'f4'                                             |
+        +========+======+======+=======+==================================================+
+        | u'AAA' |   12 |  4.3 | True  | datetime.datetime(2014, 6, 30, 14, 7, 2, 333199) |
+        +--------+------+------+-------+--------------------------------------------------+
+        | u'BBB' |    6 |  3.4 | False | datetime.datetime(1900, 1, 31, 0, 0)             |
+        +--------+------+------+-------+--------------------------------------------------+
+        | u'CCC' |   42 |  7.8 | True  | datetime.datetime(2100, 12, 25, 0, 0)            |
+        +--------+------+------+-------+--------------------------------------------------+
+
+        >>> # define a schema for the index
+        ... from whoosh.fields import *
+        >>> schema = Schema(f0=TEXT(stored=True),
+        ...                 f1=NUMERIC(int, stored=True),
+        ...                 f2=NUMERIC(float, stored=True),
+        ...                 f3=BOOLEAN(stored=True),
+        ...                 f4=DATETIME(stored=True))
+        >>> # load data
+        ... toindex(tbl, 'tmp/example', schema=schema)
+        >>> # look what it did
+        ... look(fromindex('tmp/example'))
+        +--------+------+------+-------+--------------------------------------------------+
+        | 'f0'   | 'f1' | 'f2' | 'f3'  | 'f4'                                             |
+        +========+======+======+=======+==================================================+
+        | u'AAA' |   12 |  4.3 | True  | datetime.datetime(2014, 6, 30, 14, 7, 2, 333199) |
+        +--------+------+------+-------+--------------------------------------------------+
+        | u'BBB' |    6 |  3.4 | False | datetime.datetime(1900, 1, 31, 0, 0)             |
+        +--------+------+------+-------+--------------------------------------------------+
+        | u'CCC' |   42 |  7.8 | True  | datetime.datetime(2100, 12, 25, 0, 0)            |
+        +--------+------+------+-------+--------------------------------------------------+
 
     .. versionadded:: 0.16
+
+    Parameters
+    ----------
+
+    tbl
+        A table-like object (row container) containing the data to be loaded.
+    index_or_dirname
+        Either an instance of `whoosh.index.Index` or a string containing the
+        directory path where the index is to be stored.
+    indexname
+        String containing the name of the index, if multiple indexes are stored
+        in the same directory.
+    merge
+        Merge small segments during commit?
+    optimize
+        Merge all segments together?
+
     """
     try:
         import whoosh
@@ -112,10 +209,12 @@ def toindex(tbl, index_or_dirname, schema=None, indexname=None, merge=False,
             index = whoosh.index.create_in(dirname, schema,
                                            indexname=indexname)
             needs_closing = True
-        else:
-            # TODO check it quacks like an index
+        elif isinstance(index_or_dirname, whoosh.index.Index):
             index = index_or_dirname
             needs_closing = False
+        else:
+            raise Exception('expected string or index, found %r'
+                            % index_or_dirname)
 
         writer = index.writer()
         try:
@@ -137,9 +236,27 @@ def toindex(tbl, index_or_dirname, schema=None, indexname=None, merge=False,
 def appendindex(tbl, index_or_dirname, indexname=None, merge=True,
                 optimize=False):
     """
-    TODO
+    Load all rows from `tbl` into a Whoosh index, adding them to any existing
+    data in the index.
 
     .. versionadded:: 0.16
+
+    Parameters
+    ----------
+
+    tbl
+        A table-like object (row container) containing the data to be loaded.
+    index_or_dirname
+        Either an instance of `whoosh.index.Index` or a string containing the
+        directory path where the index is to be stored.
+    indexname
+        String containing the name of the index, if multiple indexes are stored
+        in the same directory.
+    merge
+        Merge small segments during commit?
+    optimize
+        Merge all segments together?
+
     """
     try:
         import whoosh
@@ -153,10 +270,12 @@ def appendindex(tbl, index_or_dirname, indexname=None, merge=True,
             index = whoosh.index.open_dir(dirname, indexname=indexname,
                                           readonly=False)
             needs_closing = True
-        else:
-            # TODO check it quacks like an index
+        elif isinstance(index_or_dirname, whoosh.index.Index):
             index = index_or_dirname
             needs_closing = False
+        else:
+            raise Exception('expected string or index, found %r'
+                            % index_or_dirname)
 
         writer = index.writer()
         try:
@@ -182,9 +301,75 @@ def searchindex(index_or_dirname, query,
                 fieldboosts=None,
                 search_kwargs=dict()):
     """
-    TODO
+    Search an index using a query. E.g.::
+
+        >>> # set up an index and load some documents via the Whoosh API
+        ... from whoosh.index import create_in
+        >>> from whoosh.fields import *
+        >>> schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT)
+        >>> index = create_in('tmp/example', schema)
+        >>> writer = index.writer()
+        >>> writer.add_document(title=u"Oranges", path=u"/a",
+        ...                     content=u"This is the first document we've added!")
+        >>> writer.add_document(title=u"Apples", path=u"/b",
+        ...                     content=u"The second document is even more "
+        ...                             u"interesting!")
+        >>> writer.commit()
+        >>> # demonstrate the use of searchindex()
+        ... from petl import look
+        >>> from petlx.index import searchindex
+        >>> look(searchindex('tmp/example', 'oranges'))
+        +--------+------------+
+        | 'path' | 'title'    |
+        +========+============+
+        | u'/a'  | u'Oranges' |
+        +--------+------------+
+
+        >>> look(searchindex('tmp/example', 'doc*'))
+        +--------+------------+
+        | 'path' | 'title'    |
+        +========+============+
+        | u'/a'  | u'Oranges' |
+        +--------+------------+
+        | u'/b'  | u'Apples'  |
+        +--------+------------+
 
     .. versionadded:: 0.16
+
+    Parameters
+    ----------
+
+    index_or_dirname
+        Either an instance of `whoosh.index.Index` or a string containing the
+        directory path where the index is to be stored.
+    query
+        Either a string or an instance of `whoosh.query.Query`. If a string,
+        it will be parsed as a multi-field query, i.e., any terms not bound
+        to a specific field will match **any** field.
+    limit
+        Return at most `limit` results.
+    indexname
+        String containing the name of the index, if multiple indexes are stored
+        in the same directory.
+    docnum_field
+        If not None, an extra field will be added to the output table containing
+        the internal document number stored in the index. The name of the field
+        will be the value of this argument.
+    score_field
+        If not None, an extra field will be added to the output table containing
+        the score of the result. The name of the field will be the value of this
+        argument.
+    fieldboosts
+        An optional dictionary mapping field names to boosts.
+    search_kwargs
+        Any extra keyword arguments to be passed through to the Whoosh
+        `search()` method.
+
+    Returns
+    -------
+
+    A table-like object (row container).
+
     """
 
     return SearchIndexContainer(index_or_dirname, query,
@@ -204,9 +389,46 @@ def searchindexpage(index_or_dirname, query, pagenum,
                     fieldboosts=None,
                     search_kwargs=dict()):
     """
-    TODO
+    Search an index using a query, returning a result page.
 
     .. versionadded:: 0.16
+
+    Parameters
+    ----------
+
+    index_or_dirname
+        Either an instance of `whoosh.index.Index` or a string containing the
+        directory path where the index is to be stored.
+    query
+        Either a string or an instance of `whoosh.query.Query`. If a string,
+        it will be parsed as a multi-field query, i.e., any terms not bound
+        to a specific field will match **any** field.
+    pagenum
+        Number of the page to return (e.g., 1 = first page).
+    pagelen
+        Number of results per page.
+    indexname
+        String containing the name of the index, if multiple indexes are stored
+        in the same directory.
+    docnum_field
+        If not None, an extra field will be added to the output table containing
+        the internal document number stored in the index. The name of the field
+        will be the value of this argument.
+    score_field
+        If not None, an extra field will be added to the output table containing
+        the score of the result. The name of the field will be the value of this
+        argument.
+    fieldboosts
+        An optional dictionary mapping field names to boosts.
+    search_kwargs
+        Any extra keyword arguments to be passed through to the Whoosh
+        `search()` method.
+
+    Returns
+    -------
+
+    A table-like object (row container).
+
     """
 
     return SearchIndexContainer(index_or_dirname, query,
@@ -257,10 +479,12 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
                                           indexname=indexname,
                                           readonly=True)
             needs_closing = True
-        else:
-            # TODO check it quacks like an index
+        elif isinstance(index_or_dirname, whoosh.index.Index):
             index = index_or_dirname
             needs_closing = False
+        else:
+            raise Exception('expected string or index, found %r'
+                            % index_or_dirname)
 
         try:
 
@@ -283,9 +507,12 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
                     fieldboosts=fieldboosts
                 )
                 query = parser.parse(query)
-            else:
-                # TODO check it quacks like a whoosh query
+            elif isinstance(query, whoosh.query.Query):
                 pass
+            else:
+                raise Exception(
+                    'expected string or whoosh.query.Query, found %r' % query
+                )
 
             # make a function to turn docs into tuples
             astuple = operator.itemgetter(*index.schema.stored_names())
@@ -325,6 +552,8 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
                 index.close()
 
 
+# TODO guess schema
+
+
 from petlx.integration import integrate
 integrate(sys.modules[__name__])
-

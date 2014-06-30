@@ -39,6 +39,7 @@ Modules
    array
    dataframe
    hdf5
+   whoosh
    ipython
    interval
    tabix

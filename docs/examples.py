@@ -291,3 +291,4 @@ from petlx.hdf5 import tohdf5, fromhdf5
 tohdf5(table1, 'test1.h5', '/testgroup', 'testtable', create=True, createparents=True)
 look(fromhdf5('test1.h5', '/testgroup', 'testtable'))
 
+
