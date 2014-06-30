@@ -186,15 +186,17 @@ def test_searchindex():
     # N.B., by default whoosh does not do stemming
     actual = searchindex(dirname, 'oranges')
     ieq(expect, actual)
-    actual = searchindex(dirname, 'added')
+    actual = searchindex(dirname, 'add*')
     ieq(expect, actual)
 
     expect = ((u'path', u'title'),
               (u'/a', u'Oranges'),
               (u'/b', u'Apples'))
-    actual = searchindex(dirname, 'document')
+    actual = searchindex(dirname, 'doc*')
     ieq(expect, actual)
 
 
 # TODO test_searchindexpage
+# TODO test_searchindex_multifield_query
+# TODO test_searchindex_nontext_query
 
