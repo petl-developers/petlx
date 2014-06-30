@@ -478,6 +478,47 @@ def test_intervaljoin_proximity():
     ieq(expect, actual)
     
     
+def test_intervaljoin_prefixes():
+
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervaljoin(left, right,
+                          lstart='begin', lstop='end',
+                          rstart='start', rstop='stop',
+                          lprefix='l_', rprefix='r_')
+    expect = (('l_begin', 'l_end', 'l_quux', 'r_start', 'r_stop', 'r_value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+
 def test_intervalleftjoin():
     
     left = (('begin', 'end', 'quux'),
@@ -625,7 +666,51 @@ def test_intervalleftjoin_faceted_rkeymissing():
     ieq(expect, actual)
 
 
-def test_intervaljoinvalues_faceted():    
+def test_intervalleftjoin_prefixes():
+
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervalleftjoin(left, right,
+                              lstart='begin', lstop='end',
+                              rstart='start', rstop='stop',
+                              lprefix='l_', rprefix='r_')
+    expect = (('l_begin', 'l_end', 'l_quux', 'r_start', 'r_stop', 'r_value'),
+              (1, 2, 'a', 1, 4, 'foo'),
+              (2, 4, 'b', 1, 4, 'foo'),
+              (2, 4, 'b', 3, 7, 'bar'),
+              (2, 5, 'c', 1, 4, 'foo'),
+              (2, 5, 'c', 3, 7, 'bar'),
+              (2, 5, 'c', 4, 9, 'baz'),
+              (9, 14, 'd', None, None, None),
+              (9, 140, 'e', None, None, None),
+              (1, 1, 'f', None, None, None),
+              (2, 2, 'g', 1, 4, 'foo'),
+              (4, 4, 'h', 3, 7, 'bar'),
+              (5, 5, 'i', 3, 7, 'bar'),
+              (5, 5, 'i', 4, 9, 'baz'),
+              (1, 8, 'j', 1, 4, 'foo'),
+              (1, 8, 'j', 3, 7, 'bar'),
+              (1, 8, 'j', 4, 9, 'baz'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+
+def test_intervaljoinvalues_faceted():
 
     left = (('fruit', 'begin', 'end'),
             ('apple', 1, 2),

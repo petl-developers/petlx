@@ -469,7 +469,8 @@ def facetintervalrecordlookupone(table, facet, start, stop, proximity=0, strict=
 
 
 def intervaljoin(left, right, lstart='start', lstop='stop', rstart='start',
-                 rstop='stop', lfacet=None, rfacet=None, proximity=0):
+                 rstop='stop', lfacet=None, rfacet=None, proximity=0,
+                 lprefix=None, rprefix=None):
     """
     Join two tables by overlapping intervals. E.g.::
 
@@ -609,14 +610,15 @@ def intervaljoin(left, right, lstart='start', lstop='stop', rstart='start',
     assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     return IntervalJoinView(left, right, lstart=lstart, lstop=lstop,
                             rstart=rstart, rstop=rstop, lfacet=lfacet,
-                            rfacet=rfacet, proximity=proximity)
+                            rfacet=rfacet, proximity=proximity, lprefix=lprefix,
+                            rprefix=rprefix)
 
 
 class IntervalJoinView(RowContainer):
     
     def __init__(self, left, right, lstart='start', lstop='stop', 
                  rstart='start', rstop='stop', lfacet=None, rfacet=None,
-                 proximity=0):
+                 proximity=0, lprefix=None, rprefix=None):
         self.left = left
         self.lstart = lstart
         self.lstop = lstop
@@ -626,16 +628,19 @@ class IntervalJoinView(RowContainer):
         self.rstop = rstop
         self.rfacet = rfacet
         self.proximity = proximity
+        self.lprefix = lprefix
+        self.rprefix = rprefix
         # TODO guard niether or both facet fields None
 
     def __iter__(self):
         return iterintervaljoin(self.left, self.right, self.lstart, self.lstop, 
-                                self.rstart, self.rstop, self.lfacet, self.rfacet,
-                                self.proximity)
+                                self.rstart, self.rstop, self.lfacet,
+                                self.rfacet, self.proximity, self.lprefix,
+                                self.rprefix)
         
 
 def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
-                     proximity):
+                     proximity, lprefix, rprefix):
 
     # create iterators and obtain fields
     lit = iter(left)
@@ -652,8 +657,12 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
         assert rfacet in rfields, 'field not found: %s' % rfacet
 
     # determine output fields
-    outfields = list(lfields)
-    outfields.extend(rfields)
+    if lprefix is None:
+        outfields = list(lfields)
+        outfields.extend(rfields)
+    else:
+        outfields = list(lprefix + f for f in lfields)
+        outfields.extend(rprefix + f for f in rfields)
     yield tuple(outfields)
     
     # create getters for start and stop positions
@@ -703,7 +712,7 @@ def iterintervaljoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
             
 def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
                      rstop='stop', lfacet=None, rfacet=None, proximity=0,
-                     missing=None):
+                     missing=None, lprefix=None, rprefix=None):
     """
     Like :func:`intervaljoin` but rows from the left table without a match
     in the right table are also included. E.g.::
@@ -779,14 +788,16 @@ def intervalleftjoin(left, right, lstart='start', lstop='stop', rstart='start',
     assert (lfacet is None) == (rfacet is None), 'facet key field must be provided for both or neither table'
     return IntervalLeftJoinView(left, right, lstart=lstart, lstop=lstop,
                                 rstart=rstart, rstop=rstop, lfacet=lfacet,
-                                rfacet=rfacet, proximity=proximity, missing=missing)
+                                rfacet=rfacet, proximity=proximity,
+                                missing=missing, lprefix=lprefix,
+                                rprefix=rprefix)
 
 
 class IntervalLeftJoinView(RowContainer):
     
     def __init__(self, left, right, lstart='start', lstop='stop', 
                  rstart='start', rstop='stop', lfacet=None, rfacet=None,
-                 missing=None, proximity=0):
+                 missing=None, proximity=0, lprefix=None, rprefix=None):
         self.left = left
         self.lstart = lstart
         self.lstop = lstop
@@ -797,15 +808,19 @@ class IntervalLeftJoinView(RowContainer):
         self.rfacet = rfacet
         self.missing = missing
         self.proximity = proximity
+        self.lprefix = lprefix
+        self.rprefix = rprefix
 
     def __iter__(self):
-        return iterintervalleftjoin(self.left, self.right, self.lstart, self.lstop, 
-                                    self.rstart, self.rstop, self.lfacet, self.rfacet,
-                                    self.proximity, self.missing)
+        return iterintervalleftjoin(
+            self.left, self.right, self.lstart, self.lstop, self.rstart,
+            self.rstop, self.lfacet, self.rfacet, self.proximity, self.missing,
+            self.lprefix, self.rprefix
+        )
         
 
-def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfacet,
-                         proximity, missing):
+def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet,
+                         rfacet, proximity, missing, lprefix, rprefix):
 
     # create iterators and obtain fields
     lit = iter(left)
@@ -822,8 +837,12 @@ def iterintervalleftjoin(left, right, lstart, lstop, rstart, rstop, lfacet, rfac
         assert rfacet in rfields, 'field not found: %s' % rfacet
 
     # determine output fields
-    outfields = list(lfields)
-    outfields.extend(rfields)
+    if lprefix is None:
+        outfields = list(lfields)
+        outfields.extend(rfields)
+    else:
+        outfields = list(lprefix + f for f in lfields)
+        outfields.extend(rprefix + f for f in rfields)
     yield tuple(outfields)
     
     # create getters for start and stop positions
