@@ -1,5 +1,5 @@
 nose
-petl>=0.24
+petl>=0.24.3
 Cython
 ipython
 numpy
@@ -11,3 +11,4 @@ xlutils
 xlwt
 pysam
 bx-python
+numpydoc
