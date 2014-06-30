@@ -1,0 +1,14 @@
+nose
+petl>=0.24.3
+Cython
+ipython
+numpy
+numexpr
+tables
+openpyxl
+xlrd
+xlutils
+xlwt
+pysam
+bx-python
+numpydoc

@@ -3,8 +3,8 @@ LICENSE.txt
 README.txt
 release.txt
 requirements.txt
+rtfd_requirements.txt
 setup.py
-test_requirements.txt
 docs/array.txt
 docs/dataframe.txt
 docs/gff3.txt
@@ -32,6 +32,7 @@ docs/_build/html/_sources/whoosh.txt
 docs/_build/html/_sources/xls.txt
 docs/_build/html/_sources/xlsx.txt
 src/petlx/__init__.py
+src/petlx/all.py
 src/petlx/array.py
 src/petlx/dataframe.py
 src/petlx/gff3.py
