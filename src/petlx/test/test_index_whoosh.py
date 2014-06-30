@@ -196,6 +196,26 @@ def test_searchindex():
     ieq(expect, actual)
 
 
+def test_integration():
+
+    schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT)
+
+    ix = create_in(dirname, schema)
+    writer = ix.writer()
+    writer.add_document(title=u"First document", path=u"/a",
+                        content=u"This is the first document we've added!")
+    writer.add_document(title=u"Second document", path=u"/b",
+                        content=u"The second one is even more interesting!")
+    writer.commit()
+
+    # N.B., fields get sorted
+    expect = ((u'path', u'title'),
+              (u'/a', u'first document'),
+              (u'/b', u'second document'))
+    actual = etl.fromindex(dirname).convert('title', 'lower')
+    ieq(expect, actual)
+
+
 # TODO test_searchindexpage
 # TODO test_searchindex_multifield_query
 # TODO test_searchindex_nontext_query

@@ -3,6 +3,7 @@ __author__ = 'Alistair Miles <alimanfoo@googlemail.com>'
 
 import operator
 import itertools
+import sys
 
 
 from petl.util import RowContainer, dicts
@@ -16,7 +17,9 @@ The package whoosh is required. Try pip install whoosh.
 
 def fromindex(index_or_dirname, indexname=None, docnum_field=None):
     """
-    TODO
+    Extract all documents from a Whoosh index.
+
+
 
     .. versionadded:: 0.16
     """
@@ -322,4 +325,6 @@ def itersearchindex(index_or_dirname, query, limit, pagenum, pagelen, indexname,
                 index.close()
 
 
+from petlx.integration import integrate
+integrate(sys.modules[__name__])
 
