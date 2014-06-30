@@ -1,2 +1,2 @@
 petl>=0.24.3
-numpydoc
+numpydoc==0.5
