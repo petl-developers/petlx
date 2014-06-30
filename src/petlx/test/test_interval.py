@@ -13,7 +13,7 @@ import petl.fluent as etl
 from petlx.interval import intervallookup, intervallookupone, \
     facetintervallookup, facetintervallookupone, intervaljoin, \
     intervalleftjoin, intervaljoinvalues, intervalsubtract, collapsedintervals,\
-    _Interval
+    _Interval, intervalantijoin
 
 
 def test_intervallookup():
@@ -391,6 +391,25 @@ def test_facetintervallookupone():
     eq_(expect, actual)
     
     
+def test_facetintervallookup_compound():
+
+    table = (('type', 'variety', 'start', 'stop', 'value'),
+             ('apple', 'cox', 1, 4, 'foo'),
+             ('apple', 'fuji', 3, 7, 'bar'),
+             ('orange', 'mandarin', 4, 9, 'baz'))
+
+    lkp = facetintervallookup(table, facet=('type', 'variety'), start='start',
+                              stop='stop')
+
+    actual = lkp['apple', 'cox'].find(1, 2)
+    expect = [('apple', 'cox', 1, 4, 'foo')]
+    ieq(expect, actual)
+
+    actual = lkp['apple', 'cox'].find(2, 4)
+    expect = [('apple', 'cox', 1, 4, 'foo')]
+    ieq(expect, actual)
+
+
 def test_intervaljoin():
     
     left = (('begin', 'end', 'quux'),
@@ -602,7 +621,7 @@ def test_intervaljoin_faceted():
     ieq(expect, actual)
 
                
-def test_intervalleftjoin_faceted():    
+def test_intervalleftjoin_faceted():
 
     left = (('fruit', 'begin', 'end'),
             ('apple', 1, 2),
@@ -666,6 +685,37 @@ def test_intervalleftjoin_faceted_rkeymissing():
     ieq(expect, actual)
 
 
+def test_intervaljoins_faceted_compound():
+
+    left = (('fruit', 'sort', 'begin', 'end'),
+            ('apple', 'cox', 1, 2),
+            ('apple', 'fuji', 2, 4))
+    right = (('type', 'variety', 'start', 'stop', 'value'),
+             ('apple', 'cox', 1, 4, 'foo'),
+             ('apple', 'fuji', 3, 7, 'bar'),
+             ('orange', 'mandarin', 4, 9, 'baz'))
+
+    expect = (('fruit', 'sort', 'begin', 'end', 'type', 'variety', 'start',
+               'stop', 'value'),
+              ('apple', 'cox', 1, 2, 'apple', 'cox', 1, 4, 'foo'),
+              ('apple', 'fuji', 2, 4, 'apple', 'fuji', 3, 7, 'bar'))
+
+    actual = intervaljoin(left, right, lstart='begin', lstop='end',
+                          rstart='start', rstop='stop',
+                          lfacet=('fruit', 'sort'),
+                          rfacet=('type', 'variety'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+    actual = intervalleftjoin(left, right, lstart='begin', lstop='end',
+                              rstart='start', rstop='stop',
+                              lfacet=('fruit', 'sort'),
+                              rfacet=('type', 'variety'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+
+
 def test_intervalleftjoin_prefixes():
 
     left = (('begin', 'end', 'quux'),
@@ -706,6 +756,69 @@ def test_intervalleftjoin_prefixes():
               (1, 8, 'j', 1, 4, 'foo'),
               (1, 8, 'j', 3, 7, 'bar'),
               (1, 8, 'j', 4, 9, 'baz'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+
+def test_intervalantijoin():
+
+    left = (('begin', 'end', 'quux'),
+            (1, 2, 'a'),
+            (2, 4, 'b'),
+            (2, 5, 'c'),
+            (9, 14, 'd'),
+            (9, 140, 'e'),
+            (1, 1, 'f'),
+            (2, 2, 'g'),
+            (4, 4, 'h'),
+            (5, 5, 'i'),
+            (1, 8, 'j'))
+
+    right = (('start', 'stop', 'value'),
+             (1, 4, 'foo'),
+             (3, 7, 'bar'),
+             (4, 9, 'baz'))
+
+    actual = intervalantijoin(left, right,
+                              lstart='begin', lstop='end',
+                              rstart='start', rstop='stop')
+    expect = (('begin', 'end', 'quux'),
+              (9, 14, 'd'),
+              (9, 140, 'e'),
+              (1, 1, 'f'))
+    ieq(expect, actual)
+    ieq(expect, actual)
+
+
+def test_intervalantijoin_faceted():
+
+    left = (('fruit', 'begin', 'end'),
+            ('apple', 1, 2),
+            ('apple', 2, 4),
+            ('apple', 2, 5),
+            ('orange', 2, 5),
+            ('orange', 9, 14),
+            ('orange', 19, 140),
+            ('apple', 1, 1),
+            ('apple', 2, 2),
+            ('apple', 4, 4),
+            ('apple', 5, 5),
+            ('orange', 5, 5))
+
+    right = (('type', 'start', 'stop', 'value'),
+             ('apple', 1, 4, 'foo'),
+             ('apple', 3, 7, 'bar'),
+             ('orange', 4, 9, 'baz'))
+
+    expect = (('fruit', 'begin', 'end'),
+              ('orange', 9, 14),
+              ('orange', 19, 140),
+              ('apple', 1, 1))
+
+    actual = intervalantijoin(left, right, lstart='begin', lstop='end',
+                              rstart='start', rstop='stop', lfacet='fruit',
+                              rfacet='type')
+
     ieq(expect, actual)
     ieq(expect, actual)
 

@@ -9,6 +9,7 @@ or try ``pip install bx-python``.
 
 .. autofunction:: intervaljoin
 .. autofunction:: intervalleftjoin
+.. autofunction:: intervalantijoin
 .. autofunction:: intervaljoinvalues
 .. autofunction:: intervalsubtract
 .. autofunction:: intervallookup
