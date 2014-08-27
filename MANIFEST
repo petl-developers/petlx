@@ -5,6 +5,7 @@ release.txt
 requirements.txt
 rtfd_requirements.txt
 setup.py
+test_requirements.txt
 docs/array.txt
 docs/dataframe.txt
 docs/gff3.txt
