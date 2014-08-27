@@ -12,8 +12,9 @@ import datetime
 import logging
 import petl
 from petl import header, columns, head
-from petl.io import _is_dbapi_connection, _is_dbapi_cursor, _is_sqlalchemy_engine, _is_sqlalchemy_session, \
-    _is_sqlalchemy_connection
+from petl.io.db import _is_dbapi_connection, _is_dbapi_cursor, \
+    _is_sqlalchemy_engine, _is_sqlalchemy_session, _is_sqlalchemy_connection,\
+    _quote
 from petlx.util import UnsatisfiedDependency
 
 
@@ -251,9 +252,9 @@ def drop_table(dbo, tablename, schema=None, commit=True):
     """
 
     # sanitise table name
-    tablename = petl.io._quote(tablename)
+    tablename = _quote(tablename)
     if schema is not None:
-        tablename = petl.io._quote(schema) + '.' + tablename
+        tablename = _quote(schema) + '.' + tablename
 
     sql = u'DROP TABLE IF EXISTS %s;' % tablename
     _execute(sql, dbo, commit)
