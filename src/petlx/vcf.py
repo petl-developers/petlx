@@ -12,7 +12,8 @@ at https://pypi.python.org/pypi/PyVCF or try pip install PyVCF.
 
 def fromvcf(filename, chrom=None, start=None, end=None, samples=True):
     """
-    Returns a table providing access to data from a variant call file (VCF). E.g.::
+    Returns a table providing access to data from a variant call file (VCF).
+    E.g.::
     
         >>> from petl import look
         >>> from petlx.vcf import fromvcf
@@ -43,7 +44,11 @@ def fromvcf(filename, chrom=None, start=None, end=None, samples=True):
     .. versionadded:: 0.5
     
     """
-    return VCFContainer(filename, chrom=chrom, start=start, end=end, samples=samples)
+    return VCFContainer(filename,
+                        chrom=chrom,
+                        start=start,
+                        end=end,
+                        samples=samples)
 
 
 fixed_fields = 'CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'
@@ -51,7 +56,11 @@ fixed_fields = 'CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO'
 
 class VCFContainer(RowContainer):
 
-    def __init__(self, filename, chrom=None, start=None, end=None, samples=True):
+    def __init__(self, filename,
+                 chrom=None,
+                 start=None,
+                 end=None,
+                 samples=True):
         self.filename = filename
         self.chrom = chrom
         self.start = start
@@ -77,7 +86,7 @@ class VCFContainer(RowContainer):
             yield fixed_fields
             
         # fetch region?
-        if None not in {self.chrom, self.start}:
+        if None not in [self.chrom, self.start]:
             it = reader.fetch(self.chrom, self.start, self.end)
         else:
             it = reader
@@ -194,7 +203,8 @@ def unpackinfo(tbl, *keys, **kwargs):
             keys = reader.infos.keys()
     result = unpackdict(tbl, 'INFO', keys=keys)
     if 'prefix' in kwargs:
-        result = rename(result, {k: kwargs['prefix'] + k for k in keys})
+        result = rename(result,
+                        dict([(k, kwargs['prefix'] + k) for k in keys]))
     if hasattr(tbl, 'filename'):
         return VCFWrapper(result, tbl.filename)
     else:
@@ -238,7 +248,11 @@ def meltsamples(tbl, *samples):
     .. versionadded:: 0.5
     
     """
-    result = melt(tbl, key=fixed_fields, variables=samples, variablefield='SAMPLE', valuefield='CALL')
+    result = melt(tbl,
+                  key=fixed_fields,
+                  variables=samples,
+                  variablefield='SAMPLE',
+                  valuefield='CALL')
     if hasattr(tbl, 'filename'):
         return VCFWrapper(result, tbl.filename)
     else:
@@ -293,10 +307,12 @@ def unpackcall(tbl, *keys, **kwargs):
             # all FORMAT
             keys = reader.formats.keys()
         else:
-            tbl = convert(tbl, 'CALL', lambda v: v.data._asdict()) # enable sampling of keys from data
+            # enable sampling of keys from data
+            tbl = convert(tbl, 'CALL', lambda v: v.data._asdict())
     result = unpackdict(tbl, 'CALL', keys=keys)
     if 'prefix' in kwargs:
-        result = rename(result, {k: kwargs['prefix'] + k for k in keys})
+        result = rename(result,
+                        dict([(k, kwargs['prefix'] + k) for k in keys]))
     if hasattr(tbl, 'filename'):
         return VCFWrapper(result, tbl.filename)
     else:

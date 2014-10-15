@@ -15,4 +15,5 @@ numpydoc
 psycopg2
 mysql-python
 sqlalchemy
+whoosh
 
