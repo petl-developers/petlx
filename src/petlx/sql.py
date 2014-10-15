@@ -97,14 +97,14 @@ def make_sqlalchemy_column(col, colname, constraints=True):
     elif all(isinstance(v, (int, long, float)) for v in col_not_none):
         sql_column_type = sqlalchemy.Float
 
+    elif all(isinstance(v, datetime.datetime) for v in col_not_none):
+        sql_column_type = sqlalchemy.DateTime
+
     elif all(isinstance(v, datetime.date) for v in col_not_none):
         sql_column_type = sqlalchemy.Date
 
     elif all(isinstance(v, datetime.time) for v in col_not_none):
         sql_column_type = sqlalchemy.Time
-
-    elif all(isinstance(v, datetime.datetime) for v in col_not_none):
-        sql_column_type = sqlalchemy.DateTime
 
     else:
         sql_column_type = sqlalchemy.String
