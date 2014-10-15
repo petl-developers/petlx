@@ -29,7 +29,7 @@ def test_fromxlsx_nosheet():
 
 
 def test_fromxlsx_range():
-    tbl = fromxlsx('fixture/test.xlsx', 'Sheet2', range='B2:C6')
+    tbl = fromxlsx('fixture/test.xlsx', 'Sheet2', range_string='B2:C6')
     expect = (('foo', 'bar'),
               ('A', 1),
               ('B', 2),
