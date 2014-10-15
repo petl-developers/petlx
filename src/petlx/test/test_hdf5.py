@@ -6,8 +6,8 @@ Tests for the petlx.hdf5 module.
 from itertools import chain
 
 
-from tables import openFile, IsDescription, Int32Col, Float32Col, \
-                StringCol
+from tables import open_file, IsDescription, Int32Col, Float32Col, \
+    StringCol
 from petl.testutils import ieq
 from petl.transform import sort
 import petl.fluent as etl
@@ -19,12 +19,12 @@ from petlx.hdf5 import fromhdf5, fromhdf5sorted, tohdf5, appendhdf5
 def test_fromhdf5():
     
     # set up a new hdf5 table to work with
-    h5file = openFile("test1.h5", mode="w", title="Test file")
-    h5file.createGroup('/', 'testgroup', 'Test Group')
+    h5file = open_file("test1.h5", mode="w", title="Test file")
+    h5file.create_group('/', 'testgroup', 'Test Group')
     class FooBar(IsDescription):
         foo = Int32Col(pos=0)
         bar = StringCol(6, pos=2)
-    h5table = h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5table = h5file.create_table('/testgroup', 'testtable', FooBar, 'Test Table')
     
     # load some data into the table
     table1 = (('foo', 'bar'),
@@ -49,12 +49,12 @@ def test_fromhdf5():
     ieq(table1, table2b)
     
     # verify using an existing tables.File object
-    h5file = openFile('test1.h5')
+    h5file = open_file('test1.h5')
     table3 = fromhdf5(h5file, '/testgroup/testtable')
     ieq(table1, table3)
     
     # verify using an existing tables.Table object
-    h5tbl = h5file.getNode('/testgroup/testtable')
+    h5tbl = h5file.get_node('/testgroup/testtable')
     table4 = fromhdf5(h5tbl)
     ieq(table1, table4)
 
@@ -69,12 +69,12 @@ def test_fromhdf5():
 def test_fromhdf5sorted():
     
     # set up a new hdf5 table to work with
-    h5file = openFile("test1.h5", mode="w", title="Test file")
-    h5file.createGroup('/', 'testgroup', 'Test Group')
+    h5file = open_file("test1.h5", mode="w", title="Test file")
+    h5file.create_group('/', 'testgroup', 'Test Group')
     class FooBar(IsDescription):
         foo = Int32Col(pos=0)
         bar = StringCol(6, pos=2)
-    h5table = h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5table = h5file.create_table('/testgroup', 'testtable', FooBar, 'Test Table')
     
     # load some data into the table
     table1 = (('foo', 'bar'),
@@ -85,7 +85,7 @@ def test_fromhdf5sorted():
         for i, f in enumerate(table1[0]):
             h5table.row[f] = row[i]
         h5table.row.append()
-    h5table.cols.foo.createCSIndex()
+    h5table.cols.foo.create_csindex()
     h5file.flush()
     
     # verify we can get the data back out
@@ -100,12 +100,12 @@ def test_fromhdf5sorted():
 def test_tohdf5():
     
     # set up a new hdf5 table to work with
-    h5file = openFile("test2.h5", mode="w", title="Test file")
-    h5file.createGroup('/', 'testgroup', 'Test Group')
+    h5file = open_file("test2.h5", mode="w", title="Test file")
+    h5file.create_group('/', 'testgroup', 'Test Group')
     class FooBar(IsDescription):
         foo = Int32Col(pos=0)
         bar = StringCol(6, pos=2)
-    h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5file.create_table('/testgroup', 'testtable', FooBar, 'Test Table')
     h5file.flush()
     h5file.close()
     
@@ -121,11 +121,11 @@ def test_tohdf5():
     tohdf5(table1, 'test2.h5', '/testgroup/testtable')
     ieq(table1, fromhdf5('test2.h5', '/testgroup/testtable'))
 
-    h5file = openFile("test2.h5", mode="a")
+    h5file = open_file("test2.h5", mode="a")
     tohdf5(table1, h5file, '/testgroup/testtable')
     ieq(table1, fromhdf5(h5file, '/testgroup/testtable'))
     
-    h5table = h5file.getNode('/testgroup/testtable')
+    h5table = h5file.get_node('/testgroup/testtable')
     tohdf5(table1, h5table)
     ieq(table1, fromhdf5(h5table))
     
@@ -159,12 +159,12 @@ def test_tohdf5_create():
 def test_appendhdf5():
     
     # set up a new hdf5 table to work with
-    h5file = openFile("test4.h5", mode="w", title="Test file")
-    h5file.createGroup('/', 'testgroup', 'Test Group')
+    h5file = open_file("test4.h5", mode="w", title="Test file")
+    h5file.create_group('/', 'testgroup', 'Test Group')
     class FooBar(IsDescription):
         foo = Int32Col(pos=0)
         bar = StringCol(6, pos=2)
-    h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5file.create_table('/testgroup', 'testtable', FooBar, 'Test Table')
     h5file.flush()
     h5file.close()
     
@@ -184,12 +184,12 @@ def test_appendhdf5():
 def test_integration():
     
     # set up a new hdf5 table to work with
-    h5file = openFile("test4.h5", mode="w", title="Test file")
-    h5file.createGroup('/', 'testgroup', 'Test Group')
+    h5file = open_file("test4.h5", mode="w", title="Test file")
+    h5file.create_group('/', 'testgroup', 'Test Group')
     class FooBar(IsDescription):
         foo = Int32Col(pos=0)
         bar = StringCol(6, pos=2)
-    h5file.createTable('/testgroup', 'testtable', FooBar, 'Test Table')
+    h5file.create_table('/testgroup', 'testtable', FooBar, 'Test Table')
     h5file.flush()
     h5file.close()
     
