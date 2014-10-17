@@ -1,9 +1,11 @@
 """
-TODO doc me
+Integration with HDF5 via PyTables.
 
 """
 
 import sys
+from contextlib import contextmanager
+
 
 from petl.util import RowContainer, data, iterpeek
 
@@ -90,6 +92,7 @@ class HDF5View(RowContainer):
                         self.condvars, self.start, self.stop, self.step)
     
 
+@contextmanager
 def _get_hdf5_table(source, where, name, mode='r'):
 
     try:
@@ -97,45 +100,97 @@ def _get_hdf5_table(source, where, name, mode='r'):
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
 
+    needs_closing = False
+    h5file = None
+
     # allow for polymorphic args
     if isinstance(source, tables.Table):
-        h5file = None
+
+        # source is a table
         h5tbl = source
-    else:
-        if isinstance(source, basestring):
-            # assume it's the name of an HDF5 file
-            h5file = tables.open_file(source, mode=mode)
-        elif isinstance(source, tables.File):
-            h5file = source
-        else:
-            raise Exception('invalid source argument, expected file name or tables.File or tables.Table object, found: %r' % source)
+
+    elif isinstance(source, basestring):
+
+        # assume source is the name of an HDF5 file, try to open it
+        h5file = tables.open_file(source, mode=mode)
+        needs_closing = True
         h5tbl = h5file.get_node(where, name=name)
-        assert isinstance(h5tbl, tables.Table), 'node is not a table: %r' % h5tbl
-    return h5file, h5tbl
+
+    elif isinstance(source, tables.File):
+
+        # source is an HDF5 file object
+        h5file = source
+        h5tbl = h5file.get_node(where, name=name)
+
+    else:
+
+        # invalid source
+        raise Exception('invalid source argument, expected file name or '
+                        'tables.File or tables.Table object, found: %r'
+                        % source)
+
+    yield h5tbl
+
+    # tidy up
+    if needs_closing:
+        h5file.close()
 
     
+@contextmanager
+def _get_hdf5_file(source, mode='r'):
+
+    try:
+        import tables
+    except ImportError as e:
+        raise UnsatisfiedDependency(e, dep_message)
+
+    needs_closing = False
+    h5file = None
+
+    # allow for polymorphic args
+    if isinstance(source, basestring):
+
+        # assume source is the name of an HDF5 file, try to open it
+        h5file = tables.open_file(source, mode=mode)
+        needs_closing = True
+
+    elif isinstance(source, tables.File):
+
+        # source is an HDF5 file object
+        h5file = source
+
+    else:
+
+        # invalid source
+        raise Exception('invalid source argument, expected file name or '
+                        'tables.File object, found: %r' % source)
+
+    yield h5file
+
+    # tidy up
+    if needs_closing:
+        h5file.close()
+
+
 def iterhdf5(source, where, name, condition, condvars, start, stop, step):
 
-    h5file, h5tbl = _get_hdf5_table(source, where, name)
-    
-    try:
+    with _get_hdf5_table(source, where, name) as h5tbl:
+
+        # header row
         fields = tuple(h5tbl.colnames)
-        yield fields # header row
+        yield fields
         
-        # determine how to access the table
+        # determine how to iterate over the table
         if condition is not None:
             it = h5tbl.where(condition, condvars=condvars, 
                              start=start, stop=stop, step=step)
+
         else:
             it = h5tbl.iterrows(start=start, stop=stop, step=step)
-        
+
+        # data rows
         for row in it:
-            yield row[:] # access row as a tuple
-            
-    finally:
-        if isinstance(source, basestring):
-            # close the file if we opened it here
-            h5file.close()
+            yield row[:]  # access row as a tuple
 
 
 def fromhdf5sorted(source, where=None, name=None, sortby=None, checkCSI=False, 
@@ -216,11 +271,11 @@ class HDF5SortedView(RowContainer):
 
 def iterhdf5sorted(source, where, name, sortby, checkCSI, start, stop, step):
 
-    h5file, h5tbl = _get_hdf5_table(source, where, name)
+    with _get_hdf5_table(source, where, name) as h5tbl:
 
-    try:
+        # header row
         fields = tuple(h5tbl.colnames)
-        yield fields # header row
+        yield fields
         
         it = h5tbl.itersorted(sortby,
                               checkCSI=checkCSI,
@@ -230,21 +285,17 @@ def iterhdf5sorted(source, where, name, sortby, checkCSI, start, stop, step):
         for row in it:
             yield row[:] # access row as a tuple
             
-    finally:
-        if isinstance(source, basestring):
-            # close the file if we opened it here
-            h5file.close()
 
-
-def tohdf5(table, source, where=None, name=None, create=False,
+def tohdf5(table, source, where=None, name=None, create=False, drop=False,
            description=None, title='', filters=None, expectedrows=10000, 
            chunkshape=None, byteorder=None, createparents=False,
            sample=1000):
     """
     Write to an HDF5 table. If `create` is `False`, assumes the table
     already exists, and attempts to truncate it before loading. If `create`
-    is `True`, any existing table is dropped, and a new table is created;
-    if `description` is None, the datatype will be guessed. E.g.::
+    is `True`, a new table will be created, and if `drop` is True,
+    any existing table will be dropped. If `description` is None,
+    the datatype will be guessed. E.g.::
     
         >>> from petl import look
         >>> look(table1)
@@ -274,64 +325,44 @@ def tohdf5(table, source, where=None, name=None, create=False,
     See also :func:`appendhdf5`.
     
     .. versionadded:: 0.3
+
+    .. versionchanged:: 0.19
+
+    The `drop` keyword argument is added, an attempt will only be made to
+    drop an existing table at the given location if `drop` is True.
     
     """
 
     it = iter(table)
     
     if create:
+        with _get_hdf5_file(source, mode='a') as h5file:
 
-        try:
-            import tables
-        except ImportError as e:
-            raise UnsatisfiedDependency(e, dep_message)
-        
-        if isinstance(source, basestring):
-            # assume it's the name of an HDF5 file
-            h5file = tables.open_file(source, mode='a')
-            # N.B., don't replace the whole file!
-        elif isinstance(source, tables.File):
-            h5file = source
-        else:
-            raise Exception('invalid source argument, expected file name or tables.File, found: %r' % source)
-        
-        # determine datatype
-        if description is None:
-            peek, it = iterpeek(it, sample)
-            # use a numpy dtype
-            description = guessdtype(peek)
-        
-        # check if the table node already exists
-        try:
-            h5table = h5file.get_node(where, name)
-        except tables.NoSuchNodeError:
-            pass
-        else:
-            # drop the node
-            h5file.remove_node(where, name)
+            if drop:
+                h5file.remove_node(where, name)
 
-        # create the table
-        h5table = h5file.create_table(where, name, description, title=title,
-                                      filters=filters,
-                                      expectedrows=expectedrows,
-                                      chunkshape=chunkshape,
-                                      byteorder=byteorder,
-                                      createparents=createparents)
-    
-    else:
-        h5file, h5table = _get_hdf5_table(source, where, name, mode='a')
+            # determine datatype
+            if description is None:
+                peek, it = iterpeek(it, sample)
+                # use a numpy dtype
+                description = guessdtype(peek)
 
-    try:
+            # create the table
+            h5file.create_table(where, name, description,
+                                title=title,
+                                filters=filters,
+                                expectedrows=expectedrows,
+                                chunkshape=chunkshape,
+                                byteorder=byteorder,
+                                createparents=createparents)
+
+    with _get_hdf5_table(source, where, name, mode='a') as h5table:
+
         # truncate the existing table
         h5table.truncate(0)
         
         # load the data
         _insert(it, h5table)
-
-    finally:
-        if isinstance(source, basestring):
-            # close the file if we opened it here
-            h5file.close()
 
 
 def appendhdf5(table, source, where=None, name=None):
@@ -341,18 +372,11 @@ def appendhdf5(table, source, where=None, name=None):
     .. versionadded:: 0.3
     
     """
-    
-    h5file, h5table = _get_hdf5_table(source, where, name, mode='a')
 
-    try:
-        
+    with _get_hdf5_table(source, where, name, mode='a') as h5table:
+
         # load the data
         _insert(table, h5table)
-
-    finally:
-        if isinstance(source, basestring):
-            # close the file if we opened it here
-            h5file.close() 
 
 
 def _insert(table, h5table):

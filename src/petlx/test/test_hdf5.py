@@ -147,12 +147,12 @@ def test_tohdf5_create():
 
     # test creation with defined datatype
     tohdf5(table1, 'test3.h5', '/testgroup', 'testtable', create=True,
-           description=FooBar, createparents=True)
+           drop=True, description=FooBar, createparents=True)
     ieq(table1, fromhdf5('test3.h5', '/testgroup', 'testtable'))
     
     # test dynamically determined datatype
     tohdf5(table1, 'test3.h5', '/testgroup', 'testtable2', create=True,
-           createparents=True)
+           drop=True, createparents=True)
     ieq(table1, fromhdf5('test3.h5', '/testgroup', 'testtable2'))
     
 

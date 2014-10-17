@@ -378,7 +378,8 @@ def _execute_sqlalchemy_session(sql, session, commit):
 def todb(table, dbo, tablename, schema=None, commit=True,
          create=False, drop=False, constraints=True, metadata=None, dialect=None, sample=1000):
     """
-    Drop-in replacement for :func:`petl.todb` which also supports automatic table creation.
+    Drop-in replacement for :func:`petl.todb` which also supports automatic
+    table creation.
 
     Parameters
     ----------
