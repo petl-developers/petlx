@@ -1,9 +1,10 @@
 """
-Extension module providing some convenience functions for working with SQL databases. SQLAlchemy is required, try
-``apt-get install python-sqlalchemy`` or ``pip install SQLAlchemy``.
+Extension module providing some convenience functions for working with SQL
+databases. SQLAlchemy is required, try ``apt-get install python-sqlalchemy``
+or ``pip install SQLAlchemy``.
 
-Acknowledgments: much of the code of this module is based on the ``csvsql`` utility in the
-`csvkit <https://github.com/onyxfish/csvkit>`_ package.
+Acknowledgments: much of the code of this module is based on the ``csvsql``
+utility in the `csvkit <https://github.com/onyxfish/csvkit>`_ package.
 
 """
 
@@ -26,7 +27,8 @@ debug = logger.debug
 
 dep_message = """
 The package sqlalchemy is required. Instructions for installation can be found
-at http://docs.sqlalchemy.org/ or try apt-get install python-sqlalchemy or pip install SQLAlchemy.
+at http://docs.sqlalchemy.org/ or try apt-get install python-sqlalchemy or pip
+install SQLAlchemy.
 """
 
 
@@ -83,7 +85,8 @@ def make_sqlalchemy_column(col, colname, constraints=True):
         sql_column_type = sqlalchemy.Boolean
 
     elif all(isinstance(v, int) for v in col_not_none):
-        if max(col_not_none) > SQL_INTEGER_MAX or min(col_not_none) < SQL_INTEGER_MIN:
+        if max(col_not_none) > SQL_INTEGER_MAX \
+                or min(col_not_none) < SQL_INTEGER_MIN:
             sql_column_type = sqlalchemy.BigInteger
         else:
             sql_column_type = sqlalchemy.Integer
@@ -114,10 +117,12 @@ def make_sqlalchemy_column(col, colname, constraints=True):
     if constraints:
         sql_column_kwargs['nullable'] = len(col_not_none) < len(col)
 
-    return sqlalchemy.Column(colname, sql_column_type(**sql_type_kwargs), **sql_column_kwargs)
+    return sqlalchemy.Column(colname, sql_column_type(**sql_type_kwargs),
+                             **sql_column_kwargs)
 
 
-def make_sqlalchemy_table(table, tablename, schema=None, constraints=True, metadata=None):
+def make_sqlalchemy_table(table, tablename, schema=None, constraints=True,
+                          metadata=None):
     """
     Create an SQLAlchemy table based on a :mod:`petl` table.
 
@@ -151,13 +156,15 @@ def make_sqlalchemy_table(table, tablename, schema=None, constraints=True, metad
     cols = columns(table)
 
     for f in fields:
-        sql_column = make_sqlalchemy_column(cols[f], f, constraints=constraints)
+        sql_column = make_sqlalchemy_column(cols[f], f,
+                                            constraints=constraints)
         sql_table.append_column(sql_column)
 
     return sql_table
 
 
-def make_create_table_statement(table, tablename, schema=None, constraints=True, metadata=None, dialect=None):
+def make_create_table_statement(table, tablename, schema=None,
+                                constraints=True, metadata=None, dialect=None):
     """
     Generate a CREATE TABLE statement based on a :mod:`petl` table.
 
@@ -175,7 +182,8 @@ def make_create_table_statement(table, tablename, schema=None, constraints=True,
     metadata : sqlalchemy.MetaData
         Custom table metadata
     dialect : string
-        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
+        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql',
+        'oracle', 'maxdb', 'postgresql', 'mssql'}
 
     """
 
@@ -184,19 +192,23 @@ def make_create_table_statement(table, tablename, schema=None, constraints=True,
     except ImportError as e:
         raise UnsatisfiedDependency(e, dep_message)
 
-    sql_table = make_sqlalchemy_table(table, tablename, schema=schema, constraints=constraints, metadata=metadata)
+    sql_table = make_sqlalchemy_table(table, tablename, schema=schema,
+                                      constraints=constraints,
+                                      metadata=metadata)
 
     if dialect:
-        module = __import__('sqlalchemy.dialects.%s' % DIALECTS[dialect], fromlist=['dialect'])
+        module = __import__('sqlalchemy.dialects.%s' % DIALECTS[dialect],
+                            fromlist=['dialect'])
         sql_dialect = module.dialect()
     else:
         sql_dialect = None
 
-    return unicode(sqlalchemy.schema.CreateTable(sql_table).compile(dialect=sql_dialect)).strip() + ';'
+    return unicode(sqlalchemy.schema.CreateTable(sql_table)
+                   .compile(dialect=sql_dialect)).strip() + ';'
 
 
-def create_table(table, dbo, tablename, schema=None, commit=True, constraints=True, metadata=None, dialect=None,
-                 sample=1000):
+def create_table(table, dbo, tablename, schema=None, commit=True,
+                 constraints=True, metadata=None, dialect=None, sample=1000):
     """
     Create a database table based on a sample of data in the given table.
 
@@ -206,7 +218,8 @@ def create_table(table, dbo, tablename, schema=None, commit=True, constraints=Tr
     table : sequence of sequences (petl table)
         Table data to load
     dbo : database object
-        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
+        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or
+        SQLAlchemy connection, engine or session
     tablename : string
         Name of the table
     schema : string
@@ -214,22 +227,25 @@ def create_table(table, dbo, tablename, schema=None, commit=True, constraints=Tr
     commit : bool
         If True commit the changes
     constraints : bool
-        If True use length and nullable constraints (only relevant if create=True)
+        If True use length and nullable constraints (only relevant if
+        create=True)
     metadata : sqlalchemy.MetaData
         Custom table metadata (only relevant if create=True)
     dialect : string
-        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
-        (only relevant if create=True)
-    sample : int
-        Number of rows to sample when inferring types etc., set to 0 to use the whole table (only relevant if
+        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql',
+        'oracle', 'maxdb', 'postgresql', 'mssql'} (only relevant if
         create=True)
+    sample : int
+        Number of rows to sample when inferring types etc., set to 0 to use
+        the whole table (only relevant if create=True)
 
     """
 
     if sample > 0:
         table = head(table, sample)
     sql = make_create_table_statement(table, tablename, schema=schema,
-                                      constraints=constraints, metadata=metadata, dialect=dialect)
+                                      constraints=constraints,
+                                      metadata=metadata, dialect=dialect)
     _execute(sql, dbo, commit=commit)
 
 
@@ -241,7 +257,8 @@ def drop_table(dbo, tablename, schema=None, commit=True):
     ----------
 
     dbo : database object
-        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
+        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or
+        SQLAlchemy connection, engine or session
     tablename : string
         Name of the table
     schema : string
@@ -279,21 +296,26 @@ def _execute(sql, dbo, commit):
 
     # does it quack like an SQLAlchemy engine?
     elif _is_sqlalchemy_engine(dbo):
-        debug('assuming %r is an instance of sqlalchemy.engine.base.Engine', dbo)
+        debug('assuming %r is an instance of sqlalchemy.engine.base.Engine',
+              dbo)
         _execute_sqlalchemy_engine(sql, dbo, commit)
 
     # does it quack like an SQLAlchemy session?
     elif _is_sqlalchemy_session(dbo):
-        debug('assuming %r is an instance of sqlalchemy.orm.session.Session', dbo)
+        debug('assuming %r is an instance of sqlalchemy.orm.session.Session',
+              dbo)
         _execute_sqlalchemy_session(sql, dbo, commit)
 
     # does it quack like an SQLAlchemy connection?
     elif _is_sqlalchemy_connection(dbo):
-        debug('assuming %r is an instance of sqlalchemy.engine.base.Connection', dbo)
+        debug('assuming %r is an instance of '
+              'sqlalchemy.engine.base.Connection',
+              dbo)
         _execute_sqlalchemy_connection(sql, dbo, commit)
 
     elif callable(dbo):
-        debug('assuming %r is a function returning standard DB-API 2.0 cursor objects', dbo)
+        debug('assuming %r is a function returning standard DB-API 2.0 cursor '
+              'objects', dbo)
         _execute_dbapi_mkcurs(sql, dbo, commit)
 
     # some other sort of duck...
@@ -330,8 +352,10 @@ def _execute_dbapi_mkcurs(sql, mkcurs, commit):
 
     if commit:
         debug('commit transaction')
-        # N.B., we depend on this optional DB-API 2.0 attribute being implemented
-        assert hasattr(cursor, 'connection'), 'could not obtain connection via cursor'
+        # N.B., we depend on this optional DB-API 2.0 attribute being
+        # implemented
+        assert hasattr(cursor, 'connection'), \
+            'could not obtain connection via cursor'
         connection = cursor.connection
         connection.commit()
 
@@ -345,8 +369,10 @@ def _execute_dbapi_cursor(sql, cursor, commit):
 
     if commit:
         debug('commit transaction')
-        # N.B., we depend on this optional DB-API 2.0 attribute being implemented
-        assert hasattr(cursor, 'connection'), 'could not obtain connection via cursor'
+        # N.B., we depend on this optional DB-API 2.0 attribute being
+        # implemented
+        assert hasattr(cursor, 'connection'),\
+            'could not obtain connection via cursor'
         connection = cursor.connection
         connection.commit()
 
@@ -376,7 +402,8 @@ def _execute_sqlalchemy_session(sql, session, commit):
 
 
 def todb(table, dbo, tablename, schema=None, commit=True,
-         create=False, drop=False, constraints=True, metadata=None, dialect=None, sample=1000):
+         create=False, drop=False, constraints=True, metadata=None,
+         dialect=None, sample=1000):
     """
     Drop-in replacement for :func:`petl.todb` which also supports automatic
     table creation.
@@ -387,7 +414,8 @@ def todb(table, dbo, tablename, schema=None, commit=True,
     table : sequence of sequences (petl table)
         Table data to load
     dbo : database object
-        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or SQLAlchemy connection, engine or session
+        DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or
+        SQLAlchemy connection, engine or session
     tablename : string
         Name of the table
     schema : string
@@ -395,18 +423,23 @@ def todb(table, dbo, tablename, schema=None, commit=True,
     commit : bool
         If True commit the changes
     create : bool
-        If True attempt to create the table before loading, inferring types from a sample of the data
+        If True attempt to create the table before loading, inferring types
+        from a sample of the data
     drop : bool
-        If True attempt to drop the table before recreating (only relevant if create=True)
+        If True attempt to drop the table before recreating (only relevant if
+        create=True)
     constraints : bool
-        If True use length and nullable constraints (only relevant if create=True)
+        If True use length and nullable constraints (only relevant if
+        create=True)
     metadata : sqlalchemy.MetaData
         Custom table metadata (only relevant if create=True)
     dialect : string
-        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql', 'oracle', 'maxdb', 'postgresql', 'mssql'}
+        One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql',
+        'oracle', 'maxdb', 'postgresql', 'mssql'}
         (only relevant if create=True)
     sample : int
-        Number of rows to sample when inferring types etc. Set to 0 to use the whole table.
+        Number of rows to sample when inferring types etc. Set to 0 to use the
+        whole table.
 
     """
 
@@ -414,7 +447,8 @@ def todb(table, dbo, tablename, schema=None, commit=True,
         if drop:
             drop_table(dbo, tablename, schema=schema, commit=commit)
         create_table(table, dbo, tablename, schema=schema, commit=commit,
-                     constraints=constraints, metadata=metadata, dialect=dialect, sample=sample)
+                     constraints=constraints, metadata=metadata,
+                     dialect=dialect, sample=sample)
 
     petl.todb(table, dbo, tablename, schema=schema, commit=commit)
 
