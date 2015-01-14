@@ -12,4 +12,3 @@ def assertclose(e, a):
     
 def assertis(e, a):
     assert e is a, (e, a)
-    
