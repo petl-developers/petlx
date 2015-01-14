@@ -411,15 +411,15 @@ def todb(table, dbo, tablename, schema=None, commit=True,
     Parameters
     ----------
 
-    table : sequence of sequences (petl table)
+    table : table container
         Table data to load
     dbo : database object
         DB-API 2.0 connection, callable returning a DB-API 2.0 cursor, or
         SQLAlchemy connection, engine or session
     tablename : string
-        Name of the table
+        Name of the table in the database
     schema : string
-        Name of the database schema to create the table in
+        Name of the database schema to find the table in
     commit : bool
         If True commit the changes
     create : bool
@@ -435,11 +435,10 @@ def todb(table, dbo, tablename, schema=None, commit=True,
         Custom table metadata (only relevant if create=True)
     dialect : string
         One of {'access', 'sybase', 'sqlite', 'informix', 'firebird', 'mysql',
-        'oracle', 'maxdb', 'postgresql', 'mssql'}
-        (only relevant if create=True)
+        'oracle', 'maxdb', 'postgresql', 'mssql'} (only relevant if create=True)
     sample : int
         Number of rows to sample when inferring types etc. Set to 0 to use the
-        whole table.
+        whole table (only relevant if create=True)
 
     """
 
