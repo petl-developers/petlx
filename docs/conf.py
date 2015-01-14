@@ -15,7 +15,7 @@ import sys, os
 from ast import literal_eval
 
 
-def get_version(source=os.path.abspath('../src/petlx/__init__.py')):
+def get_version(source=os.path.abspath('../petlx/__init__.py')):
     with open(source) as f:
         for line in f:
             if line.startswith('__version__'):
@@ -47,7 +47,7 @@ extensions = ['sphinx.ext.autodoc',
 templates_path = ['_templates']
 
 # The suffix of source filenames.
-source_suffix = '.txt'
+source_suffix = '.rst'
 
 # The encoding of source files.
 #source_encoding = 'utf-8-sig'
@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'petlx'
-copyright = u'2012, Alistair Miles'
+copyright = u'2014, Alistair Miles'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -234,4 +234,4 @@ man_pages = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'python': ('http://docs.python.org', None),
-                       'petl': ('http://packages.python.org/petl/0.3', None)}
+                       'petl': ('http://petl.readthedocs.org', None)}
