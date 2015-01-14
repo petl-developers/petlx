@@ -37,15 +37,17 @@ installed separately.
 Modules
 -------
 
-.. note:: The modules :mod:`petlx.ipython`, :mod:`petlx.array`, :mod:`petlx.dataframe` have all been integrated into the main :mod:`petl` package. See the `petl docs <http://petl.readthedocs.org/>`_ for more information.
+.. note::
+
+   The modules :mod:`petlx.ipython`, :mod:`petlx.array`, :mod:`petlx.dataframe`,
+   :mod:`petlx.xls`, :mod:`petlx.xlsx`, :mod:`petlx.hdf5` have all been
+   migrated to the main :mod:`petl` package. See the
+   `petl docs <http://petl.readthedocs.org/>`_ for more information.
 
 .. toctree::
    :maxdepth: 2
 
-   xls
-   xlsx
    sql
-   hdf5
    whoosh
    interval
    tabix
