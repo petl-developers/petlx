@@ -45,6 +45,7 @@ Modules
    tabix
    gff3
    vcf
+   push
 
 Indices and tables
 ------------------
