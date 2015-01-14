@@ -5,63 +5,44 @@ arrays.
 """
 
 
-import sys
 import inspect
-from petl.util import RowContainer
-from petlx.util import UnsatisfiedDependency
+import petl as etl
+from petl.util.base import Table
 
 
-dep_message = """
-The package pandas is required. Instructions for installation can be found
-at http://pandas.pydata.org/pandas-docs/dev/install.html or try apt-get install
-python-pandas.
-"""
-
-
-def todataframe(table, index=None, exclude=None, columns=None, coerce_float=False, nrows=None):
+def todataframe(table, index=None, exclude=None, columns=None,
+                coerce_float=False, nrows=None):
     """
-    Convenience function to load data from the given `table` into a pandas DataFrame.
-
-    .. versionadded:: 0.14
+    Convenience function to load data from the given `table` into a pandas
+    DataFrame.
 
     """
-    try:
-        import pandas as pd
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-        l = list(table)
-        data = l[1:]
-        if columns is None:
-            columns = l[0]
-        return pd.DataFrame.from_records(data, index=index, exclude=exclude,
-                                         columns=columns, coerce_float=coerce_float,
-                                         nrows=nrows)
-
-
-# be backwards-compatible
-todf = todataframe
+    import pandas as pd
+    l = list(table)
+    data = l[1:]
+    if columns is None:
+        columns = l[0]
+    return pd.DataFrame.from_records(data, index=index, exclude=exclude,
+                                     columns=columns, coerce_float=coerce_float,
+                                     nrows=nrows)
 
 
 def fromdataframe(df, include_index=False):
     """
     Extract a table from a pandas DataFrame.
 
-    .. versionadded:: 0.14
-
     """
 
-    return DataFrameContainer(df, include_index=include_index)
+    return DataFrameView(df, include_index=include_index)
 
 
-# be backwards-compatible
-fromdf = fromdataframe
-
-
-class DataFrameContainer(RowContainer):
+class DataFrameView(Table):
 
     def __init__(self, df, include_index=False):
-        assert hasattr(df, 'columns') and hasattr(df, 'iterrows') and inspect.ismethod(df.iterrows), 'bad argument, expected pandas.DataFrame, found %r' % df
+        assert hasattr(df, 'columns') \
+            and hasattr(df, 'iterrows') \
+            and inspect.ismethod(df.iterrows), \
+            'bad argument, expected pandas.DataFrame, found %r' % df
         self.df = df
         self.include_index = include_index
 
@@ -76,5 +57,10 @@ class DataFrameContainer(RowContainer):
                 yield tuple(row)
 
 
-from petlx.integration import integrate
-integrate(sys.modules[__name__])
+# integrate with petl
+etl.todataframe = todataframe
+Table.todataframe = todataframe
+etl.todf = todataframe
+Table.todf = todataframe
+etl.fromdataframe = fromdataframe
+etl.fromdf = fromdataframe
