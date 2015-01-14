@@ -1,19 +1,19 @@
 v1.0
 ====
 
-TODO create local branch v1.0
+DONE create local branch v1.0
 
-TODO reorganise project layout, remove src etc.
+DONE reorganise project layout, remove src etc.
 
-TODO update version identifier scheme
+DONE update version identifier scheme
 
-TODO create remote branch v1.0 and sync
+DONE update requirements to need petl >= 1.0
 
 TODO remove ipython package, update documentation
 
 TODO migrate push package
 
-TODO update requirements to need petl >= 1.0
+TODO create remote branch v1.0 and sync
 
 TODO try installing dependencies under py34
 

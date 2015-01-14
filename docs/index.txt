@@ -11,6 +11,13 @@ a Python package for extracting, transforming and loading tables of data.
 - Download: http://pypi.python.org/pypi/petlx
 - Mailing List: http://groups.google.com/group/python-etl 
 
+Please feel free to ask questions via the mailing list
+(python-etl@googlegroups.com).
+
+To report installation problems, bugs or any other issues please email
+python-etl@googlegroups.com or `raise an issue on GitHub
+<https://github.com/alimanfoo/petlx/issues/new>`_.
+
 For an overview of all functions in the package, see the
 :ref:`genindex`.
 
@@ -30,6 +37,8 @@ installed separately.
 Modules
 -------
 
+.. note:: The :mod:`petlx.ipython` module has been integrated into the main :mod:`petl` package. See the `petl docs <http://petl.readthedocs.org/TODO>`_ for more information.
+
 .. toctree::
    :maxdepth: 2
 
@@ -40,7 +49,6 @@ Modules
    dataframe
    hdf5
    whoosh
-   ipython
    interval
    tabix
    gff3
