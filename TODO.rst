@@ -1,9 +1,13 @@
 v1.0
 ====
 
-TODO create github branch v1.0
+TODO create local branch v1.0
 
 TODO reorganise project layout, remove src etc.
+
+TODO update version identifier scheme
+
+TODO create remote branch v1.0 and sync
 
 TODO remove ipython package, update documentation
 
