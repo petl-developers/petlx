@@ -3,15 +3,14 @@ Tests for the petlx.array module.
 
 """
 
-import math
+
 import numpy as np
 
-from nose.tools import eq_
-from petl.testutils import ieq
 
+import petl as etl
+from petl.test.helpers import ieq, eq_
 from petlx.array import toarray, fromarray, torecarray
 from petlx.testutils import assertclose
-import petl.fluent as etl
 
 
 def test_toarray_nodtype():
@@ -90,7 +89,7 @@ def test_toarray_stringdtype():
          ('oranges', 3, 4.4),
          ('pears', 7, .1)]
     
-    a = toarray(t, dtype='a4, i2, f4')
+    a = toarray(t, dtype='U4, i2, f4')
     assert isinstance(a, np.ndarray)
     assert isinstance(a['foo'], np.ndarray)
     assert isinstance(a['bar'], np.ndarray)
@@ -113,7 +112,7 @@ def test_toarray_dictdtype():
          ('oranges', 3, 4.4),
          ('pears', 7, .1)]
     
-    a = toarray(t, dtype={'foo': 'a4'}) # specify partial dtype
+    a = toarray(t, dtype={'foo': 'U4'})  # specify partial dtype
     assert isinstance(a, np.ndarray)
     assert isinstance(a['foo'], np.ndarray)
     assert isinstance(a['bar'], np.ndarray)
@@ -136,7 +135,7 @@ def test_toarray_explicitdtype():
          ('oranges', 3, 4.4),
          ('pears', 7, .1)]
     
-    a = toarray(t, dtype=[('A', 'a4'), ('B', 'i2'), ('C', 'f4')])
+    a = toarray(t, dtype=[('A', 'U4'), ('B', 'i2'), ('C', 'f4')])
     assert isinstance(a, np.ndarray)
     assert isinstance(a['A'], np.ndarray)
     assert isinstance(a['B'], np.ndarray)
@@ -152,29 +151,6 @@ def test_toarray_explicitdtype():
     assertclose(.1, a['C'][2])
 
 
-def test_toarray_lists():
-    
-    t = [['foo', 'bar', 'baz'],
-         ['apples', 1, 2.5],
-         ['oranges', 3, 4.4],
-         ['pears', 7, .1]]
-    
-    a = toarray(t)
-    assert isinstance(a, np.ndarray)
-    assert isinstance(a['foo'], np.ndarray)
-    assert isinstance(a['bar'], np.ndarray)
-    assert isinstance(a['baz'], np.ndarray)
-    eq_('apples', a['foo'][0])
-    eq_('oranges', a['foo'][1])
-    eq_('pears', a['foo'][2])
-    eq_(1, a['bar'][0])
-    eq_(3, a['bar'][1])
-    eq_(7, a['bar'][2])
-    assert math.fabs(2.5 - a['baz'][0]) < 0.001
-    assert math.fabs(4.4 - a['baz'][1]) < 0.001
-    assert math.fabs(.1 - a['baz'][2]) < 0.001
-    
-    
 def test_fromarray():
     t = [('foo', 'bar', 'baz'),
          ('apples', 1, 2.5),

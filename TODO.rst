@@ -9,15 +9,19 @@ DONE update version identifier scheme
 
 DONE update requirements to need petl >= 1.0
 
-TODO remove ipython package, update documentation
+DONE remove ipython package, update documentation
 
-TODO migrate push package
+DONE migrate push package
 
-TODO create remote branch v1.0 and sync
+DONE create remote branch v1.0 and sync
 
-TODO try installing dependencies under py34
+TODO try installing dependencies under py27 and py34
 
-TODO setup for testing under py26, py27, py34
+TODO setup tox for testing under py27 and py34
+
+TODO rewrite interval module using intervaltree
+
+TODO rewrite xls module to remove dependency on xlutils
 
 TODO change all docstring examples to use new import style
 

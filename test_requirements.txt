@@ -1,5 +1,5 @@
 nose
-petl>=0.25.1
+#petl>=1.0
 Cython
 ipython
 numpy
@@ -7,13 +7,12 @@ numexpr
 tables
 openpyxl
 xlrd
-xlutils
-xlwt
-pysam
-bx-python
+xlwt-future
+intervaltree
 numpydoc
 psycopg2
-mysql-python
+pymysql
 sqlalchemy
 whoosh
-
+pandas
+tox

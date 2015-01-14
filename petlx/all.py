@@ -1,9 +1,6 @@
-__author__ = 'Alistair Miles <alimanfoo@googlemail.com>'
-
-
 """
-Meta-module to import all petlx modules and thereby cause them to be integrated
-with petl.fluent and petl.interactive.
+Meta-module to import all petlx modules and thereby cause them to be activated.
+
 """
 
 

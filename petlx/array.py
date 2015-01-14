@@ -5,31 +5,21 @@ arrays.
 """
 
 
-import sys
-from petl.util import columns, iterpeek, RowContainer, ValuesContainer
-from petlx.util import UnsatisfiedDependency
-
-
-dep_message = """
-The package numpy is required. Instructions for installation can be found 
-at http://docs.scipy.org/doc/numpy/user/install.html or try apt-get install 
-python-numpy.
-"""
+import petl as etl
+from petl.compat import next, string_types
+from petl.util.base import iterpeek, ValuesView, Table
 
 
 def guessdtype(table):
-    try:
-        import numpy as np
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-        # get numpy to infer dtype
-        it = iter(table)
-        fields = it.next()
-        rows = tuple(it)
-        dtype = np.rec.array(rows).dtype
-        dtype.names = fields
-        return dtype
+    import numpy as np
+    # get numpy to infer dtype
+    it = iter(table)
+    hdr = next(it)
+    flds = list(map(str, hdr))
+    rows = tuple(it)
+    dtype = np.rec.array(rows).dtype
+    dtype.names = flds
+    return dtype
 
 
 def toarray(table, dtype=None, count=-1, sample=1000):
@@ -89,80 +79,69 @@ def toarray(table, dtype=None, count=-1, sample=1000):
     
     """
     
-    try:
-        import numpy as np
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
+    import numpy as np
+    it = iter(table)
+    peek, it = iterpeek(it, sample)
+    hdr = next(it)
+    flds = list(map(str, hdr))
+
+    if dtype is None:
+        dtype = guessdtype(peek)
+
+    elif isinstance(dtype, string_types):
+        # insert field names from source table
+        typestrings = [s.strip() for s in dtype.split(',')]
+        dtype = [(f, t) for f, t in zip(flds, typestrings)]
+
+    elif (isinstance(dtype, dict)
+          and ('names' not in dtype or 'formats' not in dtype)):
+        # allow for partial specification of dtype
+        cols = etl.columns(peek)
+        newdtype = {'names': [], 'formats': []}
+        for f in flds:
+            newdtype['names'].append(f)
+            if f in dtype and isinstance(dtype[f], tuple):
+                # assume fully specified
+                newdtype['formats'].append(dtype[f][0])
+            elif f not in dtype:
+                # not specified at all
+                a = np.array(cols[f])
+                newdtype['formats'].append(a.dtype)
+            else:
+                # assume directly specified, just need to add offset
+                newdtype['formats'].append(dtype[f])
+        dtype = newdtype
+
     else:
+        pass  # leave dtype as-is
 
-        it = iter(table)
-        peek, it = iterpeek(it, sample)
-        fields = it.next()
-        
-        if dtype is None:
-            dtype = guessdtype(peek)
-           
-        elif isinstance(dtype, basestring):
-            # insert field names from source table
-            typestrings = [s.strip() for s in dtype.split(',')]
-            dtype = [(f, t) for f, t in zip(fields, typestrings)]
-            
-        elif (isinstance(dtype, dict)
-              and ('names' not in dtype or 'formats' not in dtype)):
-            # allow for partial specification of dtype
-            cols = columns(peek)
-            newdtype = {'names': [], 'formats': []}
-            for f in fields:
-                newdtype['names'].append(f)
-                if f in dtype and isinstance(dtype[f], tuple):
-                    # assume fully specified
-                    newdtype['formats'].append(dtype[f][0])
-                elif f not in dtype:
-                    # not specified at all
-                    a = np.array(cols[f])
-                    newdtype['formats'].append(a.dtype)
-                else:
-                    # assume directly specified, just need to add offset
-                    newdtype['formats'].append(dtype[f])
-            dtype = newdtype
-            
-        else:
-            pass # leave dtype as-is
+    # numpy is fussy about having tuples, need to make sure
+    it = (tuple(row) for row in it)
+    sa = np.fromiter(it, dtype=dtype, count=count)
 
-        # numpy is fussy about having tuples, need to make sure
-        it = (tuple(row) for row in it)
-        sa = np.fromiter(it, dtype=dtype, count=count)
-
-        return sa
+    return sa
 
 
 def torecarray(*args, **kwargs):
     """
     Convenient shorthand for ``toarray(...).view(np.recarray)``.
     
-    .. versionadded:: 0.5.1
-    
     """
-    try:
-        import numpy as np
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-        return toarray(*args, **kwargs).view(np.recarray)
+
+    import numpy as np
+    return toarray(*args, **kwargs).view(np.recarray)
 
 
 def fromarray(a):
     """
     Extract a table from a numpy structured array.
     
-    .. versionadded:: 0.4
-    
     """
     
-    return ArrayContainer(a)
+    return ArrayView(a)
 
 
-class ArrayContainer(RowContainer):
+class ArrayView(Table):
     
     def __init__(self, a):
         self.a = a
@@ -174,26 +153,19 @@ class ArrayContainer(RowContainer):
 
 
 def valuestoarray(vals, dtype=None, count=-1, sample=1000):
-
-    try:
-        import numpy as np
-    except ImportError as e:
-        raise UnsatisfiedDependency(e, dep_message)
-    else:
-
-        it = iter(vals)
-
-        if dtype is None:
-            peek, it = iterpeek(it, sample)
-            dtype = np.array(peek).dtype
-
-        a = np.fromiter(it, dtype=dtype, count=count)
-        return a
+    import numpy as np
+    it = iter(vals)
+    if dtype is None:
+        peek, it = iterpeek(it, sample)
+        dtype = np.array(peek).dtype
+    a = np.fromiter(it, dtype=dtype, count=count)
+    return a
 
 
-ValuesContainer.array = valuestoarray
-
-
-from petlx.integration import integrate
-integrate(sys.modules[__name__])
-
+# integrate extension with petl
+etl.toarray = toarray
+Table.toarray = toarray
+etl.torecarray = torecarray
+Table.torecarray = torecarray
+etl.fromarray = fromarray
+ValuesView.array = valuestoarray
