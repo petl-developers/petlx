@@ -66,14 +66,13 @@ Modules
 
    The modules :mod:`petlx.ipython`, :mod:`petlx.array`,
    :mod:`petlx.dataframe`, :mod:`petlx.xls`, :mod:`petlx.xlsx`,
-   :mod:`petlx.hdf5`, :mod:`petlx.sql`, :mod:`petlx.interval` have all been
-   migrated to the main :mod:`petl` package. See the `petl docs
-   <http://petl.readthedocs.org/>`_ for more information.
+   :mod:`petlx.hdf5`, :mod:`petlx.sql`, :mod:`petlx.interval`,
+   :mod:`petlx.whoosh` have all been migrated to the main :mod:`petl` package
+   . See the `petl docs <http://petl.readthedocs.org/>`_ for more information.
 
 .. toctree::
    :maxdepth: 2
 
-   whoosh
    tabix
    gff3
    vcf
