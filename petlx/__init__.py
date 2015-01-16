@@ -1,4 +1,4 @@
-__version__ = '1.0.0a1.dev0'
+__version__ = '1.0.0b1'
 
 
 import petlx.push
