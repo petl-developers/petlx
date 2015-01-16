@@ -1,11 +1,4 @@
-"""
-A tentative module for pushing data through branching pipelines.
-
-"""
-
-
-from __future__ import absolute_import, print_function, division, \
-    unicode_literals
+from __future__ import absolute_import, print_function, division
 
 
 import csv
@@ -96,7 +89,7 @@ class PipelineConnection(object):
 def tocsv(filename, dialect='excel', **kwargs):
     """Push rows to a CSV file. E.g.::
 
-        >>> from petl.push import tocsv
+        >>> from petlx.push import tocsv
         >>> p = tocsv('example.csv')
         >>> p.push(sometable)
 
@@ -108,7 +101,7 @@ def tocsv(filename, dialect='excel', **kwargs):
 def totsv(filename, dialect='excel-tab', **kwargs):
     """Push rows to a tab-delimited file. E.g.::
 
-        >>> from petl.push import totsv
+        >>> from petlx.push import totsv
         >>> p = totsv('example.tsv')
         >>> p.push(sometable)
 
@@ -158,7 +151,7 @@ class ToCsvConnection(PipelineConnection):
 def topickle(filename, protocol=-1):
     """Push rows to a pickle file. E.g.::
 
-        >>> from petl.push import topickle
+        >>> from petlx.push import topickle
         >>> p = topickle('example.pickle')
         >>> p.push(sometable)
 
@@ -205,7 +198,7 @@ def partition(discriminator):
     """Partition rows based on values of a field or results of applying a
     function on the row. E.g.::
 
-        >>> from petl.push import partition, tocsv
+        >>> from petlx.push import partition, tocsv
         >>> p = partition('fruit')
         >>> p.pipe('orange', tocsv('oranges.csv'))
         >>> p.pipe('banana', tocsv('bananas.csv'))
@@ -253,7 +246,7 @@ class PartitionConnection(PipelineConnection):
 def sort(key=None, reverse=False, buffersize=None):
     """Sort rows based on some key field or fields. E.g.::
 
-        >>> from petl.push import sort, tocsv
+        >>> from petlx.push import sort, tocsv
         >>> p = sort('foo')
         >>> p.pipe(tocsv('sorted_by_foo.csv'))
         >>> p.push(sometable)
@@ -295,7 +288,7 @@ class SortConnection(PipelineConnection):
         self.reverse = reverse
 
         if buffersize is None:
-            self.buffersize = petl.transform.sorts.defaultbuffersize
+            self.buffersize = petl.config.sort_buffersize
         else:
             self.buffersize = buffersize
 
@@ -344,7 +337,7 @@ def iterchunk(f):
 def duplicates(key):
     """Report rows with duplicate key values. E.g.::
 
-        >>> from petl.push import duplicates, tocsv
+        >>> from petlx.push import duplicates, tocsv
         >>> p = duplicates('foo')
         >>> p.pipe(tocsv('foo_dups.csv'))
         >>> p.pipe('remainder', tocsv('foo_uniq.csv'))
@@ -437,7 +430,7 @@ class DuplicatesConnection(PipelineConnection):
 def unique(key):
     """Report rows with unique key values. E.g.::
 
-        >>> from petl.push import unique, tocsv
+        >>> from petlx.push import unique, tocsv
         >>> p = unique('foo')
         >>> p.pipe(tocsv('foo_uniq.csv'))
         >>> p.pipe('remainder', tocsv('foo_dups.csv'))
@@ -478,7 +471,7 @@ class UniqueConnection(DuplicatesConnection):
 def diff():
     """Find rows that differ between two tables. E.g.::
 
-        >>> from petl.push import diff, tocsv
+        >>> from petlx.push import diff, tocsv
         >>> p = diff()
         >>> p.pipe('+', tocsv('added.csv'))
         >>> p.pipe('-', tocsv('subtracted.csv'))

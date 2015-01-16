@@ -1,7 +1,7 @@
 .. py:module:: petlx
 
-petlx - Optional extensions to the petl package
-===============================================
+petlx - Extensions to the petl package
+======================================
 
 :mod:`petlx` is a collection of domain-specific and/or experimental
 extensions to `petl <http://petl.readthedocs.org/>`_, a general
@@ -38,12 +38,6 @@ This package is available from the `Python Package Index
 You can also download manually, extract and run ``python setup.py
 install``.
 
-To verify the installation, the test suite can be run with `nose
-<https://nose.readthedocs.org/>`_, e.g.::
-
-    $ pip install nose
-    $ nosetests -v petlx
-
 
 .. _dependencies:
 
@@ -64,18 +58,17 @@ Modules
 
 .. note::
 
-   The modules :mod:`petlx.ipython`, :mod:`petlx.array`,
-   :mod:`petlx.dataframe`, :mod:`petlx.xls`, :mod:`petlx.xlsx`,
-   :mod:`petlx.hdf5`, :mod:`petlx.sql`, :mod:`petlx.interval`,
-   :mod:`petlx.whoosh` have all been migrated to the main :mod:`petl` package
-   . See the `petl docs <http://petl.readthedocs.org/>`_ for more information.
+   As of version 1.0 the modules :mod:`petlx.ipython`,
+   :mod:`petlx.array`, :mod:`petlx.dataframe`, :mod:`petlx.xls`,
+   :mod:`petlx.xlsx`, :mod:`petlx.hdf5`, :mod:`petlx.sql`,
+   :mod:`petlx.interval`, :mod:`petlx.whoosh` have all been migrated
+   to the main :mod:`petl` package . See the `petl docs
+   <http://petl.readthedocs.org/>`_ for more information.
 
 .. toctree::
    :maxdepth: 2
 
-   tabix
-   gff3
-   vcf
+   bio
    push
 
 Indices and tables

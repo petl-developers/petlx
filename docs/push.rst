@@ -1,7 +1,7 @@
-.. module:: petl.push
+.. module:: petlx.push
 
-petl.push - Branching Pipelines
-===============================
+Branching Pipelines
+===================
 
 Introduction
 ------------
@@ -16,7 +16,7 @@ pipeline. E.g.::
 
     >>> from petl import fromcsv
     >>> source = fromcsv('fruit.csv')
-    >>> from petl.push import *
+    >>> from petlx.push import *
     >>> p = partition('fruit')
     >>> p.pipe('orange', tocsv('oranges.csv'))
     >>> p.pipe('banana', tocsv('bananas.csv'))
@@ -28,7 +28,7 @@ shells, e.g.::
 
     >>> from petl import fromcsv
     >>> source = fromcsv('fruit.csv')
-    >>> from petl.push import *
+    >>> from petlx.push import *
     >>> p = partition('fruit')
     >>> p | ('orange', tocsv('oranges.csv')
     >>> p | ('banana', tocsv('bananas.csv')
@@ -37,12 +37,11 @@ shells, e.g.::
 Push Functions
 --------------
 
-.. autofunction:: petl.push.partition
-.. autofunction:: petl.push.sort
-.. autofunction:: petl.push.duplicates
-.. autofunction:: petl.push.unique
-.. autofunction:: petl.push.diff
-.. autofunction:: petl.push.tocsv
-.. autofunction:: petl.push.totsv
-.. autofunction:: petl.push.topickle
-
+.. autofunction:: petlx.push.partition
+.. autofunction:: petlx.push.sort
+.. autofunction:: petlx.push.duplicates
+.. autofunction:: petlx.push.unique
+.. autofunction:: petlx.push.diff
+.. autofunction:: petlx.push.tocsv
+.. autofunction:: petlx.push.totsv
+.. autofunction:: petlx.push.topickle

@@ -26,7 +26,7 @@ def get_version(source=os.path.abspath('../petlx/__init__.py')):
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('..'))
 
 # -- General configuration -----------------------------------------------------
 
@@ -57,7 +57,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'petlx'
-copyright = u'2014, Alistair Miles'
+copyright = u'2015, Alistair Miles'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -233,5 +233,4 @@ man_pages = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('http://docs.python.org', None),
-                       'petl': ('http://petl.readthedocs.org', None)}
+intersphinx_mapping = {'python': ('http://docs.python.org', None)}

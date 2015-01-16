@@ -1,6 +1,4 @@
-*.txt~
-*.py~
-*.html~
+*~
 *.pyc
 *.csv
 *.h5
