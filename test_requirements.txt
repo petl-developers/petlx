@@ -1,6 +1,4 @@
 nose
-numpydoc
 petl==1.0.0b1
 pyvcf
-cython
 pysam
