@@ -4,9 +4,8 @@ petlx - Extensions to the petl package
 ======================================
 
 :mod:`petlx` is a collection of domain-specific and/or experimental
-extensions to `petl <http://petl.readthedocs.org/>`_, a general
-purpose Python package for extracting, transforming and loading tables
-of data.
+extensions to `petl`_, a general purpose Python package for
+extracting, transforming and loading tables of data.
 
 - Documentation: http://petlx.readthedocs.org/
 - Source Code: https://github.com/alimanfoo/petlx
@@ -23,6 +22,11 @@ python-etl@googlegroups.com or `raise an issue on GitHub
 For an overview of all functions in the package, see the
 :ref:`genindex`.
 
+.. note:: 
+
+    Version 1.0 is a new major release of :mod:`petlx`. The content of
+    this package is significantly changed. See the :ref:`changes`
+    section below for more information.
 
 .. _installation:
 
@@ -56,20 +60,38 @@ packages. This is indicated in the relevant parts of the documentation.
 Modules
 -------
 
-.. note::
-
-   As of version 1.0 the modules :mod:`petlx.ipython`,
-   :mod:`petlx.array`, :mod:`petlx.dataframe`, :mod:`petlx.xls`,
-   :mod:`petlx.xlsx`, :mod:`petlx.hdf5`, :mod:`petlx.sql`,
-   :mod:`petlx.interval`, :mod:`petlx.whoosh` have all been migrated
-   to the main :mod:`petl` package . See the `petl docs
-   <http://petl.readthedocs.org/>`_ for more information.
-
 .. toctree::
    :maxdepth: 2
 
    bio
    push
+
+.. _changes:
+
+Changes
+-------
+
+Version 1.0
+~~~~~~~~~~~
+
+Version 1.0 is a new major release of both :mod:`petlx` and
+:mod:`petl`. This package has been completely reorganised, and several
+areas of functionality have been migrated to `petl`_. The major
+changes are described below.
+
+* The `petlx.xls` module has been migrated to `petl.io.xls`
+* The `petlx.xlsx` module has been migrated to `petl.io.xlsx`
+* The `petlx.array` module has been migrated to `petl.io.numpy`
+* The `petlx.dataframe` module has been migrated to `petl.io.pandas`
+* The `petlx.hdf5` module has been migrated to `petl.io.pytables`
+* The `petlx.index` module has been migrated to `petl.io.whoosh`
+* The `petlx.interval` module has been migrated to `petl.transform.intervals`
+* The `display()` and `displayall()` functions from the `petlx.ipython` module have been migrated to `petl.util.vis`
+* The `petlx.tabix` module has been renamed to `petlx.bio.tabix`
+* The `petlx.gff3` module has been renamed to `petlx.bio.gff3`
+* The `petlx.vcf` module has been renamed to `petlx.bio.vcf`
+
+Please email python-etl@googlegroups.com if you have any questions.
 
 Indices and tables
 ------------------
@@ -77,3 +99,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _petl: http://petl.readthedocs.org/

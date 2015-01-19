@@ -1,2 +1,2 @@
-petl==1.0.0b1
+petl==1.0.0b2
 numpydoc==0.5
