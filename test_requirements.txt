@@ -1,4 +1,4 @@
 nose
-petl==1.0.0b2
+petl>=1.0.0
 pyvcf
 pysam
