@@ -28,5 +28,5 @@ setup(
                  'Programming Language :: Python :: 3.4',
                  'Topic :: Software Development :: Libraries :: Python Modules'
                  ],
-    install_requires=['petl (>=1.0)']
+    install_requires=['petl>=1.0']
 )
