@@ -9,3 +9,4 @@ dist
 .idea
 tmp
 .tox/
+.DS_Store
