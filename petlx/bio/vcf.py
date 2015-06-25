@@ -69,7 +69,7 @@ class VCFView(Table):
             
         # fetch region?
         if None not in [self.chrom, self.start]:
-            it = reader.fetch(self.chrom, self.start, self.end)
+            it = reader.fetch(self.chrom, self.start, self.stop)
         else:
             it = reader
             
