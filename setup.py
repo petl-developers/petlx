@@ -1,5 +1,5 @@
 from ast import literal_eval
-from distutils.core import setup
+from setuptools import setup
 
 
 def get_version(source='petlx/__init__.py'):
